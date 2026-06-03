@@ -72,7 +72,13 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<Step>("shipping");
   const [loading, setLoading] = useState(false);
 
-  // Guest checkout allowed — no redirect needed
+  // ── Auth Guard: agar login nahi toh cart pe bhejo ──────────
+  useEffect(() => {
+    if (accessToken === null) {
+      // Token nahi — cart pe wapas bhejo
+      router.replace('/cart')
+    }
+  }, [accessToken, router])
 
   const [shipping, setShipping] = useState<ShippingForm>({
     email: "",
@@ -109,7 +115,17 @@ export default function CheckoutPage() {
   const tax = totalAmount * 0.08;
   const total = totalAmount + shippingCost + tax;
 
-
+  // Auth check loading state
+  if (accessToken === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-brand-warm border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-ink-2 dark:text-ink-dk2">Redirecting...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (items.length === 0) {
     return (

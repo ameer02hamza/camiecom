@@ -1,18 +1,21 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight, Loader2 } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { closeCart, clearCart, shopifyUpdateCartLine, shopifyRemoveFromCart } from '@/features/cart/store/cartSlice'
+import { closeCart, shopifyUpdateCartLine, shopifyRemoveFromCart } from '@/features/cart/store/cartSlice'
 import { formatPrice } from '@/shared/utils/formatPrice'
 import Button from '@/shared/ui/Button'
+import LoginModal from '@/shared/components/LoginModal'
 
 export default function CartDrawer() {
   const dispatch    = useAppDispatch()
   const router      = useRouter()
   const { items, isOpen, totalAmount, totalQuantity, isLoading, checkoutUrl } = useAppSelector(s => s.cart)
   const accessToken = useAppSelector(s => s.auth.accessToken)
+  const [showLoginModal, setShowLoginModal] = useState(false)
 
   if (!isOpen) return null
 
@@ -25,15 +28,11 @@ export default function CartDrawer() {
   }
 
   const handleCheckout = () => {
-    dispatch(closeCart())
     if (!accessToken) {
-      router.push('/auth/login?redirect=/checkout')
-      return
-    }
-    if (checkoutUrl) {
-      dispatch(clearCart())
-      window.open(checkoutUrl, '_blank')
+      // Not logged in → show login modal (keep drawer open behind it)
+      setShowLoginModal(true)
     } else {
+      dispatch(closeCart())
       router.push('/checkout')
     }
   }
@@ -137,10 +136,7 @@ export default function CartDrawer() {
             </div>
 
             <Button fullWidth size="lg" onClick={handleCheckout}>
-              {accessToken
-                ? (checkoutUrl ? 'Checkout on Shopify' : 'Checkout')
-                : 'Sign in to Checkout'
-              } <ArrowRight size={16} />
+              Proceed to Checkout <ArrowRight size={16} />
             </Button>
 
             <button onClick={() => dispatch(closeCart())} className="w-full text-center text-sm text-ink-2 dark:text-ink-dk2 hover:text-ink-1 dark:hover:text-ink-dk1 transition-colors">
@@ -149,6 +145,13 @@ export default function CartDrawer() {
           </div>
         )}
       </div>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        redirectTo="/checkout"
+      />
     </div>
   )
 }

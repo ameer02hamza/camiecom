@@ -1,14 +1,22 @@
 'use client'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle, Package, Mail, ArrowRight, ShoppingBag } from 'lucide-react'
 import Button from '@/shared/ui/Button'
+import { useAppDispatch } from '@/store/hooks'
+import { clearCart } from '@/features/cart/store/cartSlice'
 
 function OrderConfirmedContent() {
   const params  = useSearchParams()
   const orderId = params.get('order') ?? 'Camie-XXXXX'
   const email   = params.get('email') ?? 'your email'
+  const dispatch = useAppDispatch()
+
+  // Clear cart once user lands here — order is done
+  useEffect(() => {
+    dispatch(clearCart())
+  }, [dispatch])
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-16">
