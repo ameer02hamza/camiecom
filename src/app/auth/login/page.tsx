@@ -2,8 +2,10 @@
 import Link from 'next/link'
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 import Button from '@/shared/ui/Button'
+import Input from '@/shared/ui/Input'
+import AlertBanner from '@/shared/ui/AlertBanner'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loginCustomer, clearError } from '@/features/auth/store/authSlice'
 
@@ -19,7 +21,6 @@ function LoginForm() {
   const [success, setSuccess] = useState(false)
   const [form, setForm]       = useState({ email: '', password: '', remember: false })
 
-  // Agar pehle se logged in hai toh seedha redirect
   useEffect(() => {
     if (accessToken) router.replace(redirect)
   }, [accessToken, router, redirect])
@@ -35,8 +36,6 @@ function LoginForm() {
     }
   }
 
-  const cls = 'w-full h-11 px-4 text-sm border border-border-light dark:border-border-dark rounded-btn bg-transparent focus:outline-none focus:border-brand-dark dark:focus:border-brand-light transition-colors'
-
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm">
@@ -50,40 +49,39 @@ function LoginForm() {
           )}
         </div>
 
-        {success && (
-          <div className="flex items-center gap-2 bg-brand-sage/10 border border-brand-sage/20 text-brand-sage text-sm rounded-card px-4 py-3 mb-4">
-            <CheckCircle size={16} /> Login successful! Redirecting...
-          </div>
-        )}
-
-        {error && (
-          <div className="flex items-center gap-2 bg-brand-red/10 border border-brand-red/20 text-brand-red text-sm rounded-card px-4 py-3 mb-4">
-            <AlertCircle size={16} /> {error}
-          </div>
-        )}
+        {success && <AlertBanner type="success" message="Login successful! Redirecting..." className="mb-4" />}
+        {error   && <AlertBanner type="error"   message={error}                            className="mb-4" />}
 
         <form onSubmit={handleSubmit} className="bg-surface-light dark:bg-surface-dark rounded-panel shadow-card p-8 space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">Email</label>
-            <input type="email" required value={form.email}
-              onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-              placeholder="your@camiecom.com" className={cls} />
-          </div>
+          <Input
+            label="Email"
+            type="email"
+            required
+            value={form.email}
+            onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+            placeholder="your@camiecom.com"
+          />
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-sm font-medium text-ink-1 dark:text-ink-dk1">Password</label>
               <button type="button" className="text-xs text-brand-warm hover:underline">Forgot password?</button>
             </div>
-            <div className="relative">
-              <input type={showPw ? 'text' : 'password'} required value={form.password}
-                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                placeholder="••••••••" className={cls + ' pr-11'} />
-              <button type="button" onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-2 dark:text-ink-dk2">
-                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
+            <Input
+              type={showPw ? 'text' : 'password'}
+              required
+              value={form.password}
+              onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+              placeholder="••••••••"
+              className="pr-11"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw(!showPw)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-2 dark:text-ink-dk2"
+            >
+              {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
 
           <label className="flex items-center gap-2 cursor-pointer">
@@ -99,7 +97,7 @@ function LoginForm() {
         </form>
 
         <p className="text-center text-sm text-ink-2 dark:text-ink-dk2 mt-6">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link
             href={`/auth/register${redirect !== '/account' ? `?redirect=${redirect}` : ''}`}
             className="text-brand-warm font-medium hover:underline"
@@ -112,7 +110,6 @@ function LoginForm() {
   )
 }
 
-// useSearchParams needs Suspense boundary
 export default function LoginPage() {
   return (
     <Suspense>

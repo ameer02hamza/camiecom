@@ -1,20 +1,21 @@
 'use client'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronDown, X, Loader2 } from 'lucide-react'
+import { ChevronDown, X, Loader2, SlidersHorizontal } from 'lucide-react'
 import { shopifyFetch, GET_COLLECTION_PRODUCTS, GET_COLLECTIONS } from '@/shared/lib/shopify'
 import { mapShopifyProduct, type ShopifyProductNode } from '@/shared/lib/shopifyMapper'
 import ProductCard from '@/shared/components/ProductCard'
+import { ProductGridSkeleton } from '@/shared/ui/Badge'
 import { cn } from '@/shared/utils/cn'
 import type { SortOption, Product } from '@/shared/types/global.types'
 
 const SORT_OPTIONS = [
-  { value: 'featured',    label: 'Featured' },
-  { value: 'newest',      label: 'Newest' },
-  { value: 'price-asc',   label: 'Price: Low to High' },
-  { value: 'price-desc',  label: 'Price: High to Low' },
+  { value: 'featured',   label: 'Featured' },
+  { value: 'newest',     label: 'Newest' },
+  { value: 'price-asc',  label: 'Price: Low to High' },
+  { value: 'price-desc', label: 'Price: High to Low' },
 ]
 
 const SORT_KEY_MAP: Record<SortOption, { sortKey: string; reverse: boolean }> = {
@@ -25,54 +26,77 @@ const SORT_KEY_MAP: Record<SortOption, { sortKey: string; reverse: boolean }> = 
   'top-rated':  { sortKey: 'COLLECTION_DEFAULT', reverse: false },
 }
 
-interface ShopifyCollectionNode { id: string; handle: string; title: string }
-interface ShopifyCollectionResponse {
+const PAGE_SIZE = 24
+
+interface CollectionNode { id: string; handle: string; title: string }
+interface CollectionResponse {
   collection: {
     id: string; handle: string; title: string; description: string
     image: { url: string; altText: string } | null
-    products: { pageInfo: { hasNextPage: boolean }; edges: { node: ShopifyProductNode }[] }
+    products: {
+      pageInfo: { hasNextPage: boolean; endCursor: string }
+      edges: { node: ShopifyProductNode }[]
+    }
   } | null
 }
 
 export default function CollectionPage() {
   const { handle } = useParams() as { handle: string }
 
-  const [products, setProducts]         = useState<Product[]>([])
-  const [collectionMeta, setCollectionMeta] = useState<{ title: string; description: string; image: string | null } | null>(null)
-  const [allCollections, setAllCollections] = useState<ShopifyCollectionNode[]>([])
-  const [loading, setLoading]           = useState(true)
-  const [sortBy, setSortBy]             = useState<SortOption>('featured')
+  const [products, setProducts]       = useState<Product[]>([])
+  const [collectionMeta, setMeta]     = useState<{ title: string; description: string; image: string | null } | null>(null)
+  const [allCollections, setAllCollections] = useState<CollectionNode[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasNextPage, setHasNextPage] = useState(false)
+  const [endCursor, setEndCursor]     = useState<string | null>(null)
+  const [sortBy, setSortBy]           = useState<SortOption>('featured')
   const [showSaleOnly, setShowSaleOnly] = useState(false)
-  const [priceMax, setPriceMax]         = useState(10000)
+  const [priceMax, setPriceMax]       = useState(10000)
+  const [showFilters, setShowFilters] = useState(false)
 
-  useEffect(() => {
-    shopifyFetch<{ collections: { edges: { node: ShopifyCollectionNode }[] } }>({
-      query: GET_COLLECTIONS,
-      variables: { first: 50 },
-    })
-      .then(d => setAllCollections(d.collections.edges.map(e => e.node)))
-      .catch(() => {})
-  }, [])
+  // Variant filters
+  const [selectedSizes, setSelectedSizes]   = useState<Set<string>>(new Set())
+  const [selectedColors, setSelectedColors] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    setLoading(true)
+  // Derived available options from loaded products
+  const availableSizes = useMemo(() => {
+    const sizes = new Set<string>()
+    products.forEach(p => p.options?.find(o => o.name === 'Size')?.values.forEach(v => sizes.add(v)))
+    return [...sizes]
+  }, [products])
+
+  const availableColors = useMemo(() => {
+    const colors = new Set<string>()
+    products.forEach(p => p.options?.find(o => o.name === 'Color')?.values.forEach(v => colors.add(v)))
+    return [...colors]
+  }, [products])
+
+  const fetchProducts = useCallback(async (cursor: string | null = null, append = false) => {
     const { sortKey, reverse } = SORT_KEY_MAP[sortBy]
-    shopifyFetch<ShopifyCollectionResponse>({
-      query: GET_COLLECTION_PRODUCTS,
-      variables: { handle, first: 100, sortKey, reverse },
-    })
-      .then(d => {
-        if (!d.collection) { setLoading(false); return }
-        setCollectionMeta({
-          title:       d.collection.title,
-          description: d.collection.description,
-          image:       d.collection.image?.url ?? null,
-        })
-        setProducts(d.collection.products.edges.map(e => mapShopifyProduct(e.node)))
+    append ? setLoadingMore(true) : setLoading(true)
+    try {
+      const d = await shopifyFetch<CollectionResponse>({
+        query: GET_COLLECTION_PRODUCTS,
+        variables: { handle, first: PAGE_SIZE, after: cursor, sortKey, reverse },
       })
-      .catch(console.error)
-      .finally(() => setLoading(false))
+      if (!d.collection) { setLoading(false); return }
+      setMeta({ title: d.collection.title, description: d.collection.description, image: d.collection.image?.url ?? null })
+      const newProducts = d.collection.products.edges.map(e => mapShopifyProduct(e.node))
+      setProducts(prev => append ? [...prev, ...newProducts] : newProducts)
+      setHasNextPage(d.collection.products.pageInfo.hasNextPage)
+      setEndCursor(d.collection.products.pageInfo.endCursor)
+    } catch (e) { console.error(e) }
+    finally { setLoading(false); setLoadingMore(false) }
   }, [handle, sortBy])
+
+  useEffect(() => { setProducts([]); setEndCursor(null); fetchProducts(null, false) }, [handle, sortBy, fetchProducts])
+
+  useEffect(() => {
+    shopifyFetch<{ collections: { edges: { node: CollectionNode }[] } }>({
+      query: GET_COLLECTIONS, variables: { first: 50 },
+    }).then(d => setAllCollections(d.collections.edges.map(e => e.node))).catch(() => {})
+  }, [])
 
   const maxProductPrice = useMemo(
     () => Math.ceil(Math.max(...products.map(p => p.price), 100) / 100) * 100,
@@ -83,34 +107,64 @@ export default function CollectionPage() {
     let list = [...products]
     if (showSaleOnly) list = list.filter(p => p.isSale)
     list = list.filter(p => p.price <= priceMax)
+    if (selectedSizes.size > 0) {
+      list = list.filter(p =>
+        p.variants.some(v =>
+          v.selectedOptions.some(o => o.name === 'Size' && selectedSizes.has(o.value))
+        )
+      )
+    }
+    if (selectedColors.size > 0) {
+      list = list.filter(p =>
+        p.variants.some(v =>
+          v.selectedOptions.some(o => o.name === 'Color' && selectedColors.has(o.value))
+        )
+      )
+    }
     return list
-  }, [products, showSaleOnly, priceMax])
+  }, [products, showSaleOnly, priceMax, selectedSizes, selectedColors])
+
+  const activeFilterCount = [
+    showSaleOnly, priceMax < maxProductPrice,
+    selectedSizes.size > 0, selectedColors.size > 0
+  ].filter(Boolean).length
+
+  const clearAllFilters = () => {
+    setShowSaleOnly(false); setPriceMax(maxProductPrice)
+    setSelectedSizes(new Set()); setSelectedColors(new Set())
+  }
+
+  const toggleSet = (set: Set<string>, val: string) => {
+    const next = new Set(set)
+    next.has(val) ? next.delete(val) : next.add(val)
+    return next
+  }
 
   const title = collectionMeta?.title ?? handle.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
   const heroImage = collectionMeta?.image ?? 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&q=80'
 
   return (
     <div>
-      {/* HERO */}
+      {/* Hero */}
       <section className="relative h-64 sm:h-80 overflow-hidden">
         <Image src={heroImage} alt={title} fill priority className="object-cover object-center" sizes="100vw" />
         <div className="absolute inset-0 bg-brand-dark/55" />
         <div className="absolute inset-0 flex flex-col justify-end pb-8 max-w-7xl mx-auto px-4 sm:px-8 w-full">
-          <div className="flex items-center gap-2 text-white/60 text-xs mb-3">
+          <nav className="flex items-center gap-2 text-white/60 text-xs mb-3">
             <Link href="/" className="hover:text-white transition-colors">Home</Link>
             <span>/</span>
             <Link href="/shop" className="hover:text-white transition-colors">Shop</Link>
             <span>/</span>
             <span className="text-white">{title}</span>
-          </div>
+          </nav>
           <h1 className="font-display text-4xl sm:text-5xl text-white tracking-heading">{title}</h1>
           {collectionMeta?.description && (
-            <p className="text-white/70 mt-2 text-sm sm:text-base">{collectionMeta.description}</p>
+            <p className="text-white/70 mt-2 text-sm sm:text-base max-w-xl">{collectionMeta.description}</p>
           )}
         </div>
       </section>
 
-      {/* COLLECTION TABS — from Shopify */}
+      {/* Collection tabs */}
       <div className="border-b border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark overflow-x-auto scrollbar-hide">
         <div className="flex gap-1 px-4 sm:px-8 py-3 max-w-7xl mx-auto">
           {allCollections.map(c => (
@@ -123,7 +177,7 @@ export default function CollectionPage() {
               {c.title}
             </Link>
           ))}
-          <Link href="/shop" className="flex-shrink-0 px-4 py-2 rounded-pill text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-ink-1 dark:hover:text-ink-dk1 hover:bg-border-light dark:hover:bg-border-dark transition-colors">
+          <Link href="/shop" className="flex-shrink-0 px-4 py-2 rounded-pill text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:bg-border-light dark:hover:bg-border-dark transition-colors">
             View All
           </Link>
         </div>
@@ -131,9 +185,50 @@ export default function CollectionPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* SIDEBAR */}
-          <aside className="hidden lg:block w-52 flex-shrink-0">
+
+          {/* Sidebar */}
+          <aside className={cn('lg:block w-56 flex-shrink-0', !showFilters && 'hidden lg:block')}>
             <div className="sticky top-24 space-y-7">
+
+              {/* Size filter */}
+              {availableSizes.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">Size</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {availableSizes.map(size => (
+                      <button key={size} onClick={() => setSelectedSizes(toggleSet(selectedSizes, size))}
+                        className={cn('px-3 py-1.5 text-xs font-medium border rounded-btn transition-colors',
+                          selectedSizes.has(size)
+                            ? 'border-brand-dark dark:border-brand-light bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark'
+                            : 'border-border-light dark:border-border-dark text-ink-1 dark:text-ink-dk1 hover:border-brand-dark dark:hover:border-brand-light'
+                        )}>
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Color filter */}
+              {availableColors.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">Color</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {availableColors.map(color => (
+                      <button key={color} onClick={() => setSelectedColors(toggleSet(selectedColors, color))}
+                        className={cn('px-3 py-1.5 text-xs font-medium border rounded-btn transition-colors',
+                          selectedColors.has(color)
+                            ? 'border-brand-dark dark:border-brand-light bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark'
+                            : 'border-border-light dark:border-border-dark text-ink-1 dark:text-ink-dk1 hover:border-brand-dark dark:hover:border-brand-light'
+                        )}>
+                        {color}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Price */}
               <div>
                 <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">
                   Max Price — {priceMax >= maxProductPrice ? 'Any' : `$${priceMax}`}
@@ -146,6 +241,7 @@ export default function CollectionPage() {
                 </div>
               </div>
 
+              {/* Sale toggle */}
               <div>
                 <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">Promotions</h3>
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -159,7 +255,14 @@ export default function CollectionPage() {
                 </label>
               </div>
 
-              {/* All collections links */}
+              {/* Clear filters */}
+              {activeFilterCount > 0 && (
+                <button onClick={clearAllFilters} className="text-xs text-brand-red hover:underline flex items-center gap-1">
+                  <X size={12} /> Clear all filters
+                </button>
+              )}
+
+              {/* All collections */}
               <div>
                 <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">Collections</h3>
                 <div className="space-y-0.5">
@@ -176,12 +279,21 @@ export default function CollectionPage() {
             </div>
           </aside>
 
-          {/* GRID */}
+          {/* Grid */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-ink-2 dark:text-ink-dk2">
-                {loading ? 'Loading...' : `${filtered.length} product${filtered.length !== 1 ? 's' : ''}`}
-              </p>
+            <div className="flex items-center justify-between mb-6 gap-4">
+              <div className="flex items-center gap-3">
+                <button onClick={() => setShowFilters(!showFilters)}
+                  className="lg:hidden flex items-center gap-2 px-4 py-2 border border-border-light dark:border-border-dark rounded-btn text-sm font-medium hover:bg-border-light dark:hover:bg-border-dark transition-colors">
+                  <SlidersHorizontal size={14} /> Filters
+                  {activeFilterCount > 0 && (
+                    <span className="w-4 h-4 bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark text-[10px] rounded-pill flex items-center justify-center">{activeFilterCount}</span>
+                  )}
+                </button>
+                <p className="text-sm text-ink-2 dark:text-ink-dk2">
+                  {loading ? 'Loading...' : `${filtered.length} product${filtered.length !== 1 ? 's' : ''}`}
+                </p>
+              </div>
               <div className="relative">
                 <select value={sortBy} onChange={e => setSortBy(e.target.value as SortOption)}
                   className="appearance-none h-9 pl-3 pr-8 text-sm border border-border-light dark:border-border-dark rounded-btn bg-surface-light dark:bg-surface-dark text-ink-1 dark:text-ink-dk1 focus:outline-none cursor-pointer">
@@ -191,20 +303,50 @@ export default function CollectionPage() {
               </div>
             </div>
 
-            {loading ? (
-              <div className="flex flex-col items-center justify-center py-32 gap-3">
-                <Loader2 size={28} className="animate-spin text-ink-2 dark:text-ink-dk2" />
-                <p className="text-sm text-ink-2 dark:text-ink-dk2">Loading products...</p>
+            {/* Active filter chips */}
+            {activeFilterCount > 0 && (
+              <div className="flex flex-wrap gap-2 mb-5">
+                {[...selectedSizes].map(s => (
+                  <span key={s} className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark text-xs font-medium rounded-pill">
+                    Size: {s} <button onClick={() => setSelectedSizes(toggleSet(selectedSizes, s))}><X size={11} /></button>
+                  </span>
+                ))}
+                {[...selectedColors].map(c => (
+                  <span key={c} className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark text-xs font-medium rounded-pill">
+                    Color: {c} <button onClick={() => setSelectedColors(toggleSet(selectedColors, c))}><X size={11} /></button>
+                  </span>
+                ))}
+                {showSaleOnly && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark text-xs font-medium rounded-pill">
+                    Sale <button onClick={() => setShowSaleOnly(false)}><X size={11} /></button>
+                  </span>
+                )}
               </div>
+            )}
+
+            {loading ? (
+              <ProductGridSkeleton count={PAGE_SIZE} cols={3} />
             ) : filtered.length === 0 ? (
               <div className="text-center py-24 space-y-3">
-                <p className="text-ink-2 dark:text-ink-dk2 text-lg">No products found in "{title}".</p>
+                <p className="text-ink-2 dark:text-ink-dk2 text-lg">No products match your filters.</p>
+                <button onClick={clearAllFilters} className="text-brand-warm text-sm hover:underline">Clear all filters</button>
+                <br />
                 <Link href="/shop" className="text-brand-warm text-sm hover:underline">Browse all products →</Link>
               </div>
             ) : (
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                {filtered.map(p => <ProductCard key={p.id} product={p} />)}
-              </div>
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                  {filtered.map(p => <ProductCard key={p.id} product={p} />)}
+                </div>
+                {hasNextPage && (
+                  <div className="flex justify-center mt-10">
+                    <button onClick={() => fetchProducts(endCursor, true)} disabled={loadingMore}
+                      className="inline-flex items-center gap-2 px-8 py-3 border border-border-light dark:border-border-dark rounded-btn text-sm font-medium hover:bg-border-light dark:hover:bg-border-dark transition-colors disabled:opacity-50">
+                      {loadingMore ? <><Loader2 size={15} className="animate-spin" /> Loading...</> : 'Load More'}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

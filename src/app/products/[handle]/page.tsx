@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Heart, ShoppingBag, Check, ChevronDown, Truck, RotateCcw, Leaf, Loader2 } from 'lucide-react'
+import SizeGuideModal from '@/shared/components/SizeGuideModal'
 import { shopifyFetch, GET_PRODUCT, GET_PRODUCTS } from '@/shared/lib/shopify'
 import { mapShopifyProduct, type ShopifyProductNode } from '@/shared/lib/shopifyMapper'
 import { StarRating, Badge } from '@/shared/ui/Badge'
@@ -28,6 +29,7 @@ export default function ProductPage() {
   const [loading, setLoading]       = useState(true)
   const [notFound, setNotFound]     = useState(false)
 
+  const [sizeGuideOpen, setSizeGuideOpen]     = useState(false)
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
   const [quantity, setQuantity]           = useState(1)
   const [added, setAdded]                 = useState(false)
@@ -172,7 +174,15 @@ export default function ProductPage() {
                   {option.name}
                   {selectedOptions[option.name] && <span className="font-normal text-ink-2 dark:text-ink-dk2"> — {selectedOptions[option.name]}</span>}
                 </p>
-                {option.name === 'Size' && <button className="text-xs text-brand-warm underline">Size Guide</button>}
+                {option.name === 'Size' && (
+                  <button
+                    type="button"
+                    onClick={() => setSizeGuideOpen(true)}
+                    className="text-xs text-brand-warm underline hover:opacity-80 transition-opacity"
+                  >
+                    Size Guide
+                  </button>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 {option.values.map(value => {
@@ -279,6 +289,8 @@ export default function ProductPage() {
           </div>
         </section>
       )}
+
+      <SizeGuideModal isOpen={sizeGuideOpen} onClose={() => setSizeGuideOpen(false)} />
     </div>
   )
 }

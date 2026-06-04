@@ -1,3 +1,22 @@
+
+// ─── Shopify CDN image optimizer ─────────────────────────────────────────────
+// Appends width param to Shopify CDN URLs for faster loading
+export function optimizeShopifyImage(url: string, width: number): string {
+  if (!url) return url
+  try {
+    const u = new URL(url)
+    // Shopify CDN supports width param
+    if (u.hostname.includes('cdn.shopify.com')) {
+      u.searchParams.set('width', String(width))
+      u.searchParams.set('crop', 'center')
+    }
+    return u.toString()
+  } catch {
+    return url
+  }
+}
+
+
 import type { Product } from '@/shared/types/global.types'
 
 // ─── Raw Shopify node shapes ──────────────────────────────────────────────────
@@ -35,9 +54,12 @@ export function mapShopifyProduct(node: ShopifyProductNode): Product {
 
   // images: use images array if available (detail page), fallback to featuredImage
   const images = node.images?.edges.length
-    ? node.images.edges.map(e => e.node)
+    ? node.images.edges.map(e => ({
+        ...e.node,
+        url: optimizeShopifyImage(e.node.url, 800),
+      }))
     : node.featuredImage
-      ? [node.featuredImage]
+      ? [{ ...node.featuredImage, url: optimizeShopifyImage(node.featuredImage.url, 800) }]
       : [{ url: '', altText: node.title, width: 800, height: 1000 }]
 
   // variants

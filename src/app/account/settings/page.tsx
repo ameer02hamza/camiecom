@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Settings, User, Lock, Bell, Check, X, Loader2, Eye, EyeOff } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchCustomer } from '@/features/auth/store/authSlice'
+import { useAuthGuard } from '@/shared/hooks/useAuthGuard'
 import { shopifyFetch, CUSTOMER_UPDATE } from '@/shared/lib/shopify'
 import { cn } from '@/shared/utils/cn'
 
@@ -11,7 +12,7 @@ type Tab = 'profile' | 'password' | 'preferences'
 
 export default function SettingsPage() {
   const dispatch    = useAppDispatch()
-  const { customer, accessToken } = useAppSelector(s => s.auth)
+  const { customer, accessToken } = useAuthGuard()
 
   const [tab, setTab]       = useState<Tab>('profile')
   const [saving, setSaving] = useState(false)

@@ -2,6 +2,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { SlidersHorizontal, ChevronDown, X, Loader2 } from 'lucide-react'
 import ProductCard from '@/shared/components/ProductCard'
+import { ProductGridSkeleton } from '@/shared/ui/Badge'
 import { cn } from '@/shared/utils/cn'
 import type { SortOption, Product } from '@/shared/types/global.types'
 import { shopifyFetch, GET_PRODUCTS, GET_COLLECTIONS } from '@/shared/lib/shopify'
@@ -216,10 +217,7 @@ export default function ShopPage() {
           </div>
  
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-32 gap-3">
-              <Loader2 size={28} className="animate-spin text-ink-2 dark:text-ink-dk2" />
-              <p className="text-sm text-ink-2 dark:text-ink-dk2">Loading products...</p>
-            </div>
+            <ProductGridSkeleton count={8} cols={3} />
           ) : filtered.length === 0 ? (
             <div className="text-center py-24">
               <p className="text-ink-2 dark:text-ink-dk2 text-lg mb-3">No products match your filters.</p>

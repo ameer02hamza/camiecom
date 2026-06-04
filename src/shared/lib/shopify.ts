@@ -91,7 +91,16 @@ export const GET_CUSTOMER = `
   }
 `
 
-// ─── PRODUCT QUERIES ───────────────────────────────────────────────────────────
+// ─── NEWSLETTER ───────────────────────────────────────────────────────────────
+
+export const NEWSLETTER_SUBSCRIBE = `
+  mutation newsletterSubscribe($email: String!, $password: String!) {
+    customerCreate(input: { email: $email, password: $password, acceptsMarketing: true }) {
+      customer { id email acceptsMarketing }
+      customerUserErrors { code field message }
+    }
+  }
+`
 
 export const GET_PRODUCTS = `
   query GetProducts($first: Int!, $after: String, $sortKey: ProductSortKeys, $reverse: Boolean) {
@@ -157,7 +166,12 @@ export const GET_COLLECTION_PRODUCTS = `
           compareAtPriceRange { minVariantPrice { amount currencyCode } }
           featuredImage { url altText width height }
           tags
-          variants(first: 1) { edges { node { id availableForSale } } }
+          options { id name values }
+          variants(first: 10) { edges { node {
+            id title availableForSale
+            price { amount currencyCode }
+            selectedOptions { name value }
+          }}}
         }}
       }
     }
@@ -179,8 +193,6 @@ export const GET_CART = `
     }
   }
 `
-
-// ─── CART MUTATIONS ────────────────────────────────────────────────────────────
 
 export const CREATE_CART = `
   mutation CreateCart($lines: [CartLineInput!]) {
@@ -254,8 +266,6 @@ export const REMOVE_CART_LINE = `
   }
 `
 
-// ─── BUYER IDENTITY (pre-fills Shopify checkout with user's shipping info) ────
-
 export const UPDATE_BUYER_IDENTITY = `
   mutation UpdateBuyerIdentity($cartId: ID!, $buyerIdentity: CartBuyerIdentityInput!) {
     cartBuyerIdentityUpdate(cartId: $cartId, buyerIdentity: $buyerIdentity) {
@@ -277,8 +287,6 @@ export const UPDATE_BUYER_IDENTITY = `
   }
 `
 
-// ─── CUSTOMER UPDATE ──────────────────────────────────────────────────────────
-
 export const CUSTOMER_UPDATE = `
   mutation customerUpdate($customerAccessToken: String!, $customer: CustomerUpdateInput!) {
     customerUpdate(customerAccessToken: $customerAccessToken, customer: $customer) {
@@ -295,8 +303,6 @@ export const CUSTOMER_RECOVER = `
     }
   }
 `
-
-// ─── ADDRESS MUTATIONS ────────────────────────────────────────────────────────
 
 export const GET_CUSTOMER_ADDRESSES = `
   query GetCustomerAddresses($customerAccessToken: String!) {
@@ -344,8 +350,6 @@ export const ADDRESS_SET_DEFAULT = `
     }
   }
 `
-
-// ─── ORDERS ────────────────────────────────────────────────────────────────────
 
 export const GET_CUSTOMER_ORDERS = `
   query GetOrders($customerAccessToken: String!, $first: Int!, $after: String) {

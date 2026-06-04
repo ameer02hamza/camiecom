@@ -1,70 +1,103 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { ArrowRight, Truck, RotateCcw, Leaf } from 'lucide-react'
-import { HERO_BANNERS, COLLECTION_HIGHLIGHTS } from '@/data/mockData'
-import { shopifyFetch, GET_PRODUCTS, GET_COLLECTIONS } from '@/shared/lib/shopify'
-import { mapShopifyProduct, ShopifyProductNode } from '@/shared/lib/shopifyMapper'
-import ProductCard from '@/shared/components/ProductCard'
-import type { Metadata } from 'next'
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Truck, RotateCcw, Leaf } from "lucide-react";
+import { HERO_BANNERS, COLLECTION_HIGHLIGHTS } from "@/data/mockData";
+import {
+  shopifyFetch,
+  GET_PRODUCTS,
+  GET_COLLECTIONS,
+} from "@/shared/lib/shopify";
+import {
+  mapShopifyProduct,
+  ShopifyProductNode,
+} from "@/shared/lib/shopifyMapper";
+import ProductCard from "@/shared/components/ProductCard";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Camiecom — Dress with Intention',
-  description: 'Premium fashion brand. Considered pieces for a considered wardrobe.',
-}
+  title: "Camiecom — Dress with Intention",
+  description:
+    "Premium fashion brand. Considered pieces for a considered wardrobe.",
+};
 
 interface ShopifyCollectionNode {
-  id: string; handle: string; title: string
-  image: { url: string; altText: string } | null
+  id: string;
+  handle: string;
+  title: string;
+  image: { url: string; altText: string } | null;
 }
 
 export default async function HomePage() {
-  const hero = HERO_BANNERS[0]
+  const hero = HERO_BANNERS[0];
 
   // Fetch in parallel
-  const [bestsellersData, newArrivalsData, collectionsData] = await Promise.allSettled([
-    shopifyFetch<{ products: { edges: { node: ShopifyProductNode }[] } }>({
-      query: GET_PRODUCTS,
-      variables: { first: 4, sortKey: 'BEST_SELLING', reverse: false },
-    }),
-    shopifyFetch<{ products: { edges: { node: ShopifyProductNode }[] } }>({
-      query: GET_PRODUCTS,
-      variables: { first: 4, sortKey: 'CREATED_AT', reverse: true },
-    }),
-    shopifyFetch<{ collections: { edges: { node: ShopifyCollectionNode }[] } }>({
-      query: GET_COLLECTIONS,
-      variables: { first: 4 },
-    }),
-  ])
+  const [bestsellersData, newArrivalsData, collectionsData] =
+    await Promise.allSettled([
+      shopifyFetch<{ products: { edges: { node: ShopifyProductNode }[] } }>({
+        query: GET_PRODUCTS,
+        variables: { first: 4, sortKey: "BEST_SELLING", reverse: false },
+      }),
+      shopifyFetch<{ products: { edges: { node: ShopifyProductNode }[] } }>({
+        query: GET_PRODUCTS,
+        variables: { first: 4, sortKey: "CREATED_AT", reverse: true },
+      }),
+      shopifyFetch<{
+        collections: { edges: { node: ShopifyCollectionNode }[] };
+      }>({
+        query: GET_COLLECTIONS,
+        variables: { first: 4 },
+      }),
+    ]);
 
-  const bestsellers = bestsellersData.status === 'fulfilled'
-    ? bestsellersData.value.products.edges.map(e => mapShopifyProduct(e.node))
-    : []
+  const bestsellers =
+    bestsellersData.status === "fulfilled"
+      ? bestsellersData.value.products.edges.map((e) =>
+          mapShopifyProduct(e.node),
+        )
+      : [];
 
-  const newArrivals = newArrivalsData.status === 'fulfilled'
-    ? newArrivalsData.value.products.edges.map(e => mapShopifyProduct(e.node))
-    : []
+  const newArrivals =
+    newArrivalsData.status === "fulfilled"
+      ? newArrivalsData.value.products.edges.map((e) =>
+          mapShopifyProduct(e.node),
+        )
+      : [];
 
   // Collections from Shopify — fallback to mockData if none
-  const shopifyCollections = collectionsData.status === 'fulfilled'
-    ? collectionsData.value.collections.edges.map(e => e.node)
-    : []
+  const shopifyCollections =
+    collectionsData.status === "fulfilled"
+      ? collectionsData.value.collections.edges.map((e) => e.node)
+      : [];
 
-  const categoryCards = shopifyCollections.length > 0
-    ? shopifyCollections.slice(0, 4).map(c => ({
-        id: c.id,
-        label: c.title,
-        image: c.image?.url ?? COLLECTION_HIGHLIGHTS.find(h => h.id === c.handle)?.image ?? 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&q=80',
-        href: `/collections/${c.handle}`,
-      }))
-    : COLLECTION_HIGHLIGHTS
+  const categoryCards =
+    shopifyCollections.length > 0
+      ? shopifyCollections.slice(0, 4).map((c) => ({
+          id: c.id,
+          label: c.title,
+          image:
+            c.image?.url ??
+            COLLECTION_HIGHLIGHTS.find((h) => h.id === c.handle)?.image ??
+            "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=600&q=80",
+          href: `/collections/${c.handle}`,
+        }))
+      : COLLECTION_HIGHLIGHTS;
 
-  const saleItems = [...bestsellers, ...newArrivals].filter(p => p.isSale).slice(0, 4)
+  const saleItems = [...bestsellers, ...newArrivals]
+    .filter((p) => p.isSale)
+    .slice(0, 4);
 
   return (
     <div>
       {/* ── HERO ── */}
       <section className="relative h-[85vh] min-h-[560px] overflow-hidden">
-        <Image src={hero.image} alt="Hero" fill priority className="object-cover object-center" sizes="100vw" />
+        <Image
+          src={hero.image}
+          alt="Hero"
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-brand-dark/70 via-brand-dark/30 to-transparent" />
         <div className="absolute inset-0 flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -73,18 +106,27 @@ export default async function HomePage() {
                 {hero.badge}
               </span>
               <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl text-white leading-tight tracking-heading mb-6">
-                {hero.title.split('\n').map((line, i) => (
-                  <span key={i}>{line}{i === 0 && <br/>}</span>
+                {hero.title.split("\n").map((line, i) => (
+                  <span key={i}>
+                    {line}
+                    {i === 0 && <br />}
+                  </span>
                 ))}
               </h1>
-              <p className="text-white/75 text-lg leading-body mb-8">{hero.subtitle}</p>
+              <p className="text-white/75 text-lg leading-body mb-8">
+                {hero.subtitle}
+              </p>
               <div className="flex flex-wrap gap-3">
-                <Link href="/shop"
-                  className="inline-flex items-center gap-2 h-12 px-8 bg-white text-brand-dark rounded-btn text-sm font-semibold hover:opacity-90 hover:-translate-y-px transition-all">
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center gap-2 h-12 px-8 bg-white text-brand-dark rounded-btn text-sm font-semibold hover:opacity-90 hover:-translate-y-px transition-all"
+                >
                   {hero.cta} <ArrowRight size={16} />
                 </Link>
-                <Link href="/collections"
-                  className="inline-flex items-center gap-2 h-12 px-8 border border-white/50 text-white rounded-btn text-sm font-medium hover:bg-white/10 transition-all">
+                <Link
+                  href={"/collections/new-arrivals"}
+                  className="inline-flex items-center gap-2 h-12 px-8 border border-white/50 text-white rounded-btn text-sm font-medium hover:bg-white/10 transition-all"
+                >
                   {hero.ctaSecondary}
                 </Link>
               </div>
@@ -101,17 +143,24 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="grid grid-cols-3 divide-x divide-border-light dark:divide-border-dark text-center">
             {[
-              { icon: Truck,    label: 'Free Shipping', sub: 'Orders over $150' },
-              { icon: RotateCcw,label: 'Free Returns',  sub: '30-day policy' },
-              { icon: Leaf,     label: 'Sustainable',   sub: 'Ethical production' },
+              { icon: Truck, label: "Free Shipping", sub: "Orders over $150" },
+              { icon: RotateCcw, label: "Free Returns", sub: "30-day policy" },
+              { icon: Leaf, label: "Sustainable", sub: "Ethical production" },
             ].map(({ icon: Icon, label, sub }) => (
-              <div key={label} className="px-4 py-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+              <div
+                key={label}
+                className="px-4 py-3 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3"
+              >
                 <Icon size={18} className="text-brand-sage flex-shrink-0" />
                 <div className="text-left hidden sm:block">
-                  <p className="text-sm font-medium text-ink-1 dark:text-ink-dk1">{label}</p>
+                  <p className="text-sm font-medium text-ink-1 dark:text-ink-dk1">
+                    {label}
+                  </p>
                   <p className="text-xs text-ink-2 dark:text-ink-dk2">{sub}</p>
                 </div>
-                <p className="text-xs font-medium text-ink-1 dark:text-ink-dk1 sm:hidden">{label}</p>
+                <p className="text-xs font-medium text-ink-1 dark:text-ink-dk1 sm:hidden">
+                  {label}
+                </p>
               </div>
             ))}
           </div>
@@ -122,22 +171,42 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">Explore</p>
-            <h2 className="font-display text-4xl text-ink-1 dark:text-ink-dk1 tracking-heading">Shop by Category</h2>
+            <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">
+              Explore
+            </p>
+            <h2 className="font-display text-4xl text-ink-1 dark:text-ink-dk1 tracking-heading">
+              Shop by Category
+            </h2>
           </div>
-          <Link href="/shop" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-brand-warm transition-colors">
+          <Link
+            href="/shop"
+            className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-brand-warm transition-colors"
+          >
             View all <ArrowRight size={15} />
           </Link>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {categoryCards.map(cat => (
-            <Link key={cat.id} href={cat.href}
-              className="group relative aspect-[3/4] rounded-card overflow-hidden shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1">
-              <Image src={cat.image} alt={cat.label} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width:640px) 50vw,25vw" />
+          {categoryCards.map((cat) => (
+            <Link
+              key={cat.id}
+              href={cat.href}
+              className="group relative aspect-[3/4] rounded-card overflow-hidden shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-1"
+            >
+              <Image
+                src={cat.image}
+                alt={cat.label}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                sizes="(max-width:640px) 50vw,25vw"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/70 via-brand-dark/10 to-transparent" />
               <div className="absolute bottom-4 left-4 right-4">
-                <p className="font-display text-xl text-white font-medium">{cat.label}</p>
-                <p className="text-white/70 text-xs flex items-center gap-1 mt-1">Shop now <ArrowRight size={11} /></p>
+                <p className="font-display text-xl text-white font-medium">
+                  {cat.label}
+                </p>
+                <p className="text-white/70 text-xs flex items-center gap-1 mt-1">
+                  Shop now <ArrowRight size={11} />
+                </p>
               </div>
             </Link>
           ))}
@@ -150,15 +219,24 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between mb-10">
               <div>
-                <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">Top Picks</p>
-                <h2 className="font-display text-4xl text-ink-1 dark:text-ink-dk1 tracking-heading">Bestsellers</h2>
+                <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">
+                  Top Picks
+                </p>
+                <h2 className="font-display text-4xl text-ink-1 dark:text-ink-dk1 tracking-heading">
+                  Bestsellers
+                </h2>
               </div>
-              <Link href="/shop" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-brand-warm transition-colors">
+              <Link
+                href="/shop"
+                className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-brand-warm transition-colors"
+              >
                 View all <ArrowRight size={15} />
               </Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              {bestsellers.map(product => <ProductCard key={product.id} product={product} />)}
+              {bestsellers.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
             </div>
           </div>
         </section>
@@ -167,17 +245,28 @@ export default async function HomePage() {
       {/* ── SALE BANNER ── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="relative h-72 sm:h-96 rounded-panel overflow-hidden bg-brand-dark shadow-card">
-          <Image src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1400&q=80"
-            alt="Sale" fill className="object-cover opacity-50" sizes="100vw" />
+          <Image
+            src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1400&q=80"
+            alt="Sale"
+            fill
+            className="object-cover opacity-50"
+            sizes="100vw"
+          />
           <div className="absolute inset-0 flex items-center justify-center text-center px-8">
             <div>
               <span className="inline-block text-brand-warm text-xs font-semibold tracking-label uppercase mb-4 bg-brand-warm/20 px-3 py-1.5 rounded-pill">
                 Limited Time
               </span>
-              <h2 className="font-display text-4xl sm:text-5xl text-white tracking-heading mb-4">End of Season Sale</h2>
-              <p className="text-white/70 mb-8">Up to 30% off selected styles. While stocks last.</p>
-              <Link href="/shop"
-                className="inline-flex items-center gap-2 h-12 px-8 bg-white text-brand-dark rounded-btn text-sm font-semibold hover:opacity-90 transition-opacity">
+              <h2 className="font-display text-4xl sm:text-5xl text-white tracking-heading mb-4">
+                End of Season Sale
+              </h2>
+              <p className="text-white/70 mb-8">
+                Up to 30% off selected styles. While stocks last.
+              </p>
+              <Link
+                href="/shop"
+                className="inline-flex items-center gap-2 h-12 px-8 bg-white text-brand-dark rounded-btn text-sm font-semibold hover:opacity-90 transition-opacity"
+              >
                 Shop Sale <ArrowRight size={16} />
               </Link>
             </div>
@@ -190,15 +279,24 @@ export default async function HomePage() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">Just Dropped</p>
-              <h2 className="font-display text-4xl text-ink-1 dark:text-ink-dk1 tracking-heading">New Arrivals</h2>
+              <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">
+                Just Dropped
+              </p>
+              <h2 className="font-display text-4xl text-ink-1 dark:text-ink-dk1 tracking-heading">
+                New Arrivals
+              </h2>
             </div>
-            <Link href="/shop" className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-brand-warm transition-colors">
+            <Link
+              href="/shop"
+              className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-brand-warm transition-colors"
+            >
               View all <ArrowRight size={15} />
             </Link>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-            {newArrivals.map(product => <ProductCard key={product.id} product={product} />)}
+            {newArrivals.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
           </div>
         </section>
       )}
@@ -206,19 +304,27 @@ export default async function HomePage() {
       {/* ── BRAND STATEMENT ── */}
       <section className="bg-brand-dark py-24">
         <div className="max-w-3xl mx-auto px-4 text-center">
-          <p className="text-xs font-semibold tracking-label uppercase text-brand-warm mb-6">Our Philosophy</p>
+          <p className="text-xs font-semibold tracking-label uppercase text-brand-warm mb-6">
+            Our Philosophy
+          </p>
           <h2 className="font-display text-4xl sm:text-5xl text-brand-light leading-tight tracking-heading mb-8">
-            "We believe in buying less,<br />choosing better."
+            "We believe in buying less,
+            <br />
+            choosing better."
           </h2>
           <p className="text-brand-light/60 leading-body mb-10 max-w-xl mx-auto">
-            Every piece in the Camiecom collection is designed to last — in craft, in style, and in the way it makes you feel. We work with artisans who share our values.
+            Every piece in the Camiecom collection is designed to last — in
+            craft, in style, and in the way it makes you feel. We work with
+            artisans who share our values.
           </p>
-          <Link href="/about"
-            className="inline-flex items-center gap-2 h-11 px-7 border border-brand-light/30 text-brand-light rounded-btn text-sm font-medium hover:bg-brand-light/10 transition-colors">
+          <Link
+            href="/about"
+            className="inline-flex items-center gap-2 h-11 px-7 border border-brand-light/30 text-brand-light rounded-btn text-sm font-medium hover:bg-brand-light/10 transition-colors"
+          >
             Our Story <ArrowRight size={15} />
           </Link>
         </div>
       </section>
     </div>
-  )
+  );
 }

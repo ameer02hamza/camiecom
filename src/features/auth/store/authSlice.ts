@@ -10,7 +10,7 @@ export interface Customer {
   email: string
   phone?: string
   acceptsMarketing: boolean
-  defaultAddress?: string
+  defaultAddress?: { id: string } | null
 }
 
 interface AuthState {
@@ -23,13 +23,22 @@ interface AuthState {
 
 // ─── Load from localStorage (SSR safe) ───────────────────────────────────────
 
+function isTokenExpired(expiresAt: string | null): boolean {
+  if (!expiresAt) return true
+  return new Date(expiresAt) < new Date()
+}
+
 function loadFromStorage() {
   if (typeof window === 'undefined') return { accessToken: null, expiresAt: null }
   try {
-    return {
-      accessToken: localStorage.getItem('shopify_token'),
-      expiresAt:   localStorage.getItem('shopify_token_expires'),
+    const accessToken = localStorage.getItem('shopify_token')
+    const expiresAt   = localStorage.getItem('shopify_token_expires')
+    if (isTokenExpired(expiresAt)) {
+      localStorage.removeItem('shopify_token')
+      localStorage.removeItem('shopify_token_expires')
+      return { accessToken: null, expiresAt: null }
     }
+    return { accessToken, expiresAt }
   } catch {
     return { accessToken: null, expiresAt: null }
   }
@@ -84,36 +93,32 @@ export const loginCustomer = createAsyncThunk(
   'auth/login',
   async (input: { email: string; password: string }, { dispatch, rejectWithValue }) => {
     try {
-      const data = await shopifyFetch<{
-        customerAccessTokenCreate: {
-          customerAccessToken: { accessToken: string; expiresAt: string } | null
-          customerUserErrors: { code: string; field: string[]; message: string }[]
-        }
-      }>({
-        query: CUSTOMER_LOGIN,
-        variables: { input },
+      // Use API route — sets httpOnly cookie for security
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
       })
+      const data = await res.json()
+      if (!data.success) return rejectWithValue(data.error || 'Login failed')
 
-      const errors = data.customerAccessTokenCreate.customerUserErrors
-      if (errors.length > 0) return rejectWithValue(errors[0].message)
+      const token = { accessToken: data.accessToken, expiresAt: data.expiresAt }
 
-      const token = data.customerAccessTokenCreate.customerAccessToken!
-
-      // Save to localStorage
+      // Save to localStorage for Redux hydration on page reload
       localStorage.setItem('shopify_token', token.accessToken)
       localStorage.setItem('shopify_token_expires', token.expiresAt)
 
       // Fetch customer profile
       dispatch(fetchCustomer(token.accessToken))
 
-      // Attach buyer identity to existing cart — pre-fills Shopify native checkout
+      // Attach buyer identity to existing cart
       const cartId = localStorage.getItem('shopify_cart_id')
       if (cartId) {
         shopifyFetch({
           query: UPDATE_BUYER_IDENTITY,
           variables: { cartId, buyerIdentity: { email: input.email } },
           cache: 'no-store',
-        }).catch(() => {}) // non-critical
+        }).catch(() => {})
       }
 
       return token
@@ -153,6 +158,8 @@ export const logoutCustomer = createAsyncThunk(
         })
       } catch {}
     }
+    // Clear httpOnly cookie via API route
+    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
     localStorage.removeItem('shopify_token')
     localStorage.removeItem('shopify_token_expires')
   }

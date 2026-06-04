@@ -54,3 +54,19 @@ export function ProductCardSkeleton() {
     </div>
   )
 }
+
+// ── Grid Skeleton (multiple cards) ───────────────────────────
+export function ProductGridSkeleton({ count = 8, cols = 4 }: { count?: number; cols?: 2|3|4 }) {
+  const gridCls = {
+    2: 'grid-cols-2',
+    3: 'grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-2 lg:grid-cols-4',
+  }[cols]
+  return (
+    <div className={`grid ${gridCls} gap-4 sm:gap-5`}>
+      {Array.from({ length: count }).map((_, i) => (
+        <ProductCardSkeleton key={i} />
+      ))}
+    </div>
+  )
+}

@@ -27,3 +27,21 @@ export interface OrderItem { id: string; title: string; variant: string; quantit
 export interface Toast { id: string; message: string; type: 'success'|'error'|'info' }
 export type Theme = 'light'|'dark'
 export type SortOption = 'featured'|'newest'|'price-asc'|'price-desc'|'top-rated'
+
+// ─── Shopify API Types ────────────────────────────────────────────────────────
+
+export interface ShopifyOrderLineItem {
+  title: string
+  quantity: number
+  variant: { image: { url: string } | null; price: { amount: string } } | null
+}
+
+export interface ShopifyOrder {
+  id: string
+  orderNumber: number
+  processedAt: string
+  financialStatus: string
+  fulfillmentStatus: string
+  currentTotalPrice: { amount: string; currencyCode: string }
+  lineItems: { edges: { node: ShopifyOrderLineItem }[] }
+}

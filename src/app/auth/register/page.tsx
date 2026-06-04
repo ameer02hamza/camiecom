@@ -2,8 +2,10 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 import Button from '@/shared/ui/Button'
+import Input from '@/shared/ui/Input'
+import AlertBanner from '@/shared/ui/AlertBanner'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { registerCustomer, loginCustomer, clearError } from '@/features/auth/store/authSlice'
 
@@ -41,11 +43,7 @@ export default function RegisterPage() {
     }))
 
     if (registerCustomer.fulfilled.match(result)) {
-      // Auto login after register
-      const loginResult = await dispatch(loginCustomer({
-        email:    form.email,
-        password: form.password,
-      }))
+      const loginResult = await dispatch(loginCustomer({ email: form.email, password: form.password }))
       if (loginCustomer.fulfilled.match(loginResult)) {
         setSuccess(true)
         setTimeout(() => router.push('/account'), 1200)
@@ -53,7 +51,7 @@ export default function RegisterPage() {
     }
   }
 
-  const cls = "w-full h-11 px-4 text-sm border border-border-light dark:border-border-dark rounded-btn bg-transparent focus:outline-none focus:border-brand-dark dark:focus:border-brand-light transition-colors"
+  const alertMsg = error || pwError
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
@@ -63,75 +61,56 @@ export default function RegisterPage() {
           <p className="text-sm text-ink-2 dark:text-ink-dk2">Join Camiecom and dress with intention</p>
         </div>
 
-        {success && (
-          <div className="flex items-center gap-2 bg-brand-sage/10 border border-brand-sage/20 text-brand-sage text-sm rounded-card px-4 py-3 mb-4">
-            <CheckCircle size={16} /> Account created! Redirecting...
-          </div>
-        )}
-
-        {(error || pwError) && (
-          <div className="flex items-center gap-2 bg-brand-red/10 border border-brand-red/20 text-brand-red text-sm rounded-card px-4 py-3 mb-4">
-            <AlertCircle size={16} /> {error || pwError}
-          </div>
-        )}
+        {success   && <AlertBanner type="success" message="Account created! Redirecting..."  className="mb-4" />}
+        {alertMsg  && <AlertBanner type="error"   message={alertMsg}                         className="mb-4" />}
 
         <form onSubmit={handleSubmit} className="bg-surface-light dark:bg-surface-dark rounded-panel shadow-card p-8 space-y-4">
           {/* Name row */}
           <div className="grid grid-cols-2 gap-3">
-            {([['firstName','First name'],['lastName','Last name']] as [string,string][]).map(([key, label]) => (
-              <div key={key}>
-                <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">{label}</label>
-                <input required value={(form as any)[key]} onChange={f(key)}
-                  className="w-full h-11 px-3 text-sm border border-border-light dark:border-border-dark rounded-btn bg-transparent focus:outline-none focus:border-brand-dark dark:focus:border-brand-light transition-colors" />
-              </div>
-            ))}
+            <Input label="First name" required value={form.firstName} onChange={f('firstName')} />
+            <Input label="Last name"  required value={form.lastName}  onChange={f('lastName')}  />
           </div>
 
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">Email</label>
-            <input type="email" required value={form.email} onChange={f('email')}
-              placeholder="your@camiecom.com" className={cls} />
+          <Input label="Email"    type="email" required value={form.email} onChange={f('email')} placeholder="your@camiecom.com" />
+          <Input label="Phone"    type="tel"            value={form.phone} onChange={f('phone')} placeholder="+1 555 000 0000"
+            hint="Optional" />
+
+          {/* Password with eye toggle */}
+          <div className="relative">
+            <Input
+              label="Password"
+              type={showPw ? 'text' : 'password'}
+              required
+              minLength={5}
+              value={form.password}
+              onChange={f('password')}
+              placeholder="Min. 5 characters"
+              className="pr-11"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw(!showPw)}
+              className="absolute right-3 bottom-2.5 text-ink-2 dark:text-ink-dk2"
+            >
+              {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
 
-          {/* Phone (optional) */}
-          <div>
-            <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">
-              Phone <span className="text-ink-2 dark:text-ink-dk2 font-normal">(optional)</span>
-            </label>
-            <input type="tel" value={form.phone} onChange={f('phone')}
-              placeholder="+1 555 000 0000" className={cls} />
-          </div>
+          <Input
+            label="Confirm Password"
+            type="password"
+            required
+            value={form.confirm}
+            onChange={f('confirm')}
+            placeholder="••••••••"
+          />
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">Password</label>
-            <div className="relative">
-              <input type={showPw ? 'text' : 'password'} required minLength={5}
-                value={form.password} onChange={f('password')}
-                placeholder="Min. 5 characters" className={cls + ' pr-11'} />
-              <button type="button" onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-2 dark:text-ink-dk2">
-                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Confirm password */}
-          <div>
-            <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">Confirm Password</label>
-            <input type="password" required value={form.confirm} onChange={f('confirm')}
-              placeholder="••••••••" className={cls} />
-          </div>
-
-          {/* Marketing checkbox */}
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.acceptsMarketing} onChange={f('acceptsMarketing')}
               className="w-4 h-4 rounded accent-brand-dark" />
             <span className="text-xs text-ink-2 dark:text-ink-dk2">Email me about new arrivals and offers</span>
           </label>
 
-          {/* Terms */}
           <label className="flex items-start gap-2 cursor-pointer">
             <input type="checkbox" required checked={form.terms} onChange={f('terms')}
               className="w-4 h-4 mt-0.5 rounded accent-brand-dark" />
