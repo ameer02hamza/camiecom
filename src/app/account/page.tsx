@@ -13,9 +13,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchCustomer, logoutCustomer } from "@/features/auth/store/authSlice";
+import { logoutCustomer } from "@/features/auth/store/authSlice";
 import { shopifyFetch, GET_CUSTOMER_ORDERS } from "@/shared/lib/shopify";
 import { formatPrice } from "@/shared/utils/formatPrice";
+import { useAuthGuard } from "@/shared/hooks/useAuthGuard";
+import { AccountPageSkeleton } from "@/shared/ui/Badge";
 
 interface ShopifyOrder {
   id: string;
@@ -45,21 +47,14 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function AccountPage() {
-  const dispatch = useAppDispatch();
-  const router = useRouter();
-  const { customer, accessToken, loading } = useAppSelector((s) => s.auth);
+  const dispatch    = useAppDispatch();
+  const router      = useRouter();
+  // ── useAuthGuard handles redirect + fetchCustomer ──
+  const { customer, accessToken, loading } = useAuthGuard();
   const wishlistCount = useAppSelector((s) => s.wishlist.items.length);
 
   const [orders, setOrders] = useState<ShopifyOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
-
-  useEffect(() => {
-    if (!accessToken) {
-      router.push("/auth/login");
-      return;
-    }
-    if (!customer && accessToken) dispatch(fetchCustomer(accessToken));
-  }, [accessToken, customer, dispatch, router]);
 
   // Fetch orders when accessToken available
   useEffect(() => {
@@ -89,23 +84,12 @@ export default function AccountPage() {
     router.push("/");
   };
 
-  if (loading || !customer)
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="animate-pulse space-y-6">
-          <div className="h-10 bg-border-light dark:bg-border-dark rounded-card w-64" />
-          <div className="grid grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-28 bg-border-light dark:bg-border-dark rounded-card"
-              />
-            ))}
-          </div>
-          <div className="h-64 bg-border-light dark:bg-border-dark rounded-card" />
-        </div>
-      </div>
-    );
+  // Loading state:
+  // - accessToken nahi → useAuthGuard redirect karega
+  // - customer nahi + loading → fetch ho raha hai → skeleton
+  // - customer nahi + loading false → fetch fail ya nahi hua → redirect
+  if (!accessToken) return <AccountPageSkeleton />
+  if (loading || !customer) return <AccountPageSkeleton />
 
   const activeOrder = orders.find(
     (o) =>
@@ -120,7 +104,7 @@ export default function AccountPage() {
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full bg-brand-warm/20 flex items-center justify-center flex-shrink-0">
             <span className="font-display text-2xl text-brand-warm font-bold">
-              {customer.firstName?.charAt(0)?.toUpperCase() ?? "?"}
+              {customer?.firstName?.charAt(0)?.toUpperCase() ?? "?"}
             </span>
           </div>
           <div>
@@ -128,10 +112,10 @@ export default function AccountPage() {
               My Account
             </p>
             <h1 className="font-display text-3xl tracking-heading">
-              Hi, {customer.firstName}! 👋
+              Hi, {customer?.firstName}! 👋
             </h1>
             <p className="text-sm text-ink-2 dark:text-ink-dk2 mt-0.5">
-              {customer.email}
+              {customer?.email}
             </p>
           </div>
         </div>
@@ -156,7 +140,7 @@ export default function AccountPage() {
           {
             icon: MapPin,
             label: "Addresses",
-            value: customer.defaultAddress ? 1 : 0,
+            value: customer?.defaultAddress ? 1 : 0,
             href: "/account/addresses",
           },
         ].map(({ icon: Icon, label, value, href }) => (
@@ -333,20 +317,20 @@ export default function AccountPage() {
           <div>
             <p className="text-ink-2 dark:text-ink-dk2 mb-0.5">Full Name</p>
             <p className="font-medium text-ink-1 dark:text-ink-dk1">
-              {customer.firstName} {customer.lastName}
+              {customer?.firstName} {customer?.lastName}
             </p>
           </div>
           <div>
             <p className="text-ink-2 dark:text-ink-dk2 mb-0.5">Email Address</p>
             <p className="font-medium text-ink-1 dark:text-ink-dk1">
-              {customer.email}
+              {customer?.email}
             </p>
           </div>
-          {customer.phone && (
+          {customer?.phone && (
             <div>
               <p className="text-ink-2 dark:text-ink-dk2 mb-0.5">Phone</p>
               <p className="font-medium text-ink-1 dark:text-ink-dk1">
-                {customer.phone}
+                {customer?.phone}
               </p>
             </div>
           )}
@@ -355,7 +339,7 @@ export default function AccountPage() {
               Marketing Emails
             </p>
             <p className="font-medium text-ink-1 dark:text-ink-dk1">
-              {customer.acceptsMarketing
+              {customer?.acceptsMarketing
                 ? "✅ Subscribed"
                 : "❌ Not subscribed"}
             </p>

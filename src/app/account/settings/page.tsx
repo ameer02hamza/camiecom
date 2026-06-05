@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Settings, User, Lock, Bell, Check, X, Loader2, Eye, EyeOff } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { fetchCustomer } from '@/features/auth/store/authSlice'
 import { useAuthGuard } from '@/shared/hooks/useAuthGuard'
 import { shopifyFetch, CUSTOMER_UPDATE } from '@/shared/lib/shopify'
 import { cn } from '@/shared/utils/cn'
@@ -13,6 +12,7 @@ type Tab = 'profile' | 'password' | 'preferences'
 export default function SettingsPage() {
   const dispatch    = useAppDispatch()
   const { customer, accessToken } = useAuthGuard()
+  console.log("Customer in SettingsPage:", customer) // Debugging log
 
   const [tab, setTab]       = useState<Tab>('profile')
   const [saving, setSaving] = useState(false)
@@ -55,7 +55,6 @@ export default function SettingsPage() {
       })
       const errs = data.customerUpdate.customerUserErrors
       if (errs.length) { showFeedback(errs[0].message, 'error'); return }
-      dispatch(fetchCustomer(accessToken))
       showFeedback('Profile updated successfully!', 'success')
     } catch { showFeedback('Something went wrong. Try again.', 'error') }
     finally { setSaving(false) }
@@ -89,7 +88,6 @@ export default function SettingsPage() {
         variables: { customerAccessToken: accessToken, customer: { acceptsMarketing: marketing } },
         cache: 'no-store',
       })
-      dispatch(fetchCustomer(accessToken))
       showFeedback('Preferences saved!', 'success')
     } catch { showFeedback('Something went wrong.', 'error') }
     finally { setSaving(false) }

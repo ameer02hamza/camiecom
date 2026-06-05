@@ -14,7 +14,7 @@ import {
   Check,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchCustomer } from "@/features/auth/store/authSlice";
+import { useAuthGuard } from "@/shared/hooks/useAuthGuard";
 import {
   shopifyFetch,
   GET_CUSTOMER_ADDRESSES,
@@ -64,7 +64,8 @@ const EMPTY_FORM: AddressFormData = {
 export default function AddressesPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { customer, accessToken, loading } = useAppSelector((s) => s.auth);
+  // ── useAuthGuard handles redirect + fetchCustomer ──
+  const { customer, accessToken, loading } = useAuthGuard();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [defaultId, setDefaultId] = useState<string | null>(null);
@@ -78,15 +79,6 @@ export default function AddressesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-
-  // auth guard
-  useEffect(() => {
-    if (!accessToken) {
-      router.push("/auth/login");
-      return;
-    }
-    if (!customer && accessToken) dispatch(fetchCustomer(accessToken));
-  }, [accessToken, customer, dispatch, router]);
 
   // fetch addresses
   const fetchAddresses = async () => {

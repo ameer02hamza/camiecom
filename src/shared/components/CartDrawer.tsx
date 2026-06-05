@@ -13,7 +13,7 @@ import LoginModal from '@/shared/components/LoginModal'
 export default function CartDrawer() {
   const dispatch    = useAppDispatch()
   const router      = useRouter()
-  const { items, isOpen, totalAmount, totalQuantity, isLoading, checkoutUrl } = useAppSelector(s => s.cart)
+  const { items, isOpen, totalAmount, totalQuantity, isLoading } = useAppSelector(s => s.cart)
   const accessToken = useAppSelector(s => s.auth.accessToken)
   const [showLoginModal, setShowLoginModal] = useState(false)
 

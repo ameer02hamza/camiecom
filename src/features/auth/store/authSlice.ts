@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { shopifyFetch, CUSTOMER_LOGIN, CUSTOMER_REGISTER, CUSTOMER_LOGOUT, GET_CUSTOMER, UPDATE_BUYER_IDENTITY } from '@/shared/lib/shopify'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { shopifyFetch, CUSTOMER_REGISTER, CUSTOMER_LOGOUT, UPDATE_BUYER_IDENTITY } from '@/shared/lib/shopify'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,35 +21,10 @@ interface AuthState {
   error: string | null
 }
 
-// ─── Load from localStorage (SSR safe) ───────────────────────────────────────
-
-function isTokenExpired(expiresAt: string | null): boolean {
-  if (!expiresAt) return true
-  return new Date(expiresAt) < new Date()
-}
-
-function loadFromStorage() {
-  if (typeof window === 'undefined') return { accessToken: null, expiresAt: null }
-  try {
-    const accessToken = localStorage.getItem('shopify_token')
-    const expiresAt   = localStorage.getItem('shopify_token_expires')
-    if (isTokenExpired(expiresAt)) {
-      localStorage.removeItem('shopify_token')
-      localStorage.removeItem('shopify_token_expires')
-      return { accessToken: null, expiresAt: null }
-    }
-    return { accessToken, expiresAt }
-  } catch {
-    return { accessToken: null, expiresAt: null }
-  }
-}
-
-const { accessToken, expiresAt } = loadFromStorage()
-
 const initialState: AuthState = {
   customer:    null,
-  accessToken: accessToken,
-  expiresAt:   expiresAt,
+  accessToken: null,
+  expiresAt:   null,
   loading:     false,
   error:       null,
 }
@@ -77,10 +52,8 @@ export const registerCustomer = createAsyncThunk(
         query: CUSTOMER_REGISTER,
         variables: { input },
       })
-
       const errors = data.customerCreate.customerUserErrors
       if (errors.length > 0) return rejectWithValue(errors[0].message)
-
       return data.customerCreate.customer!
     } catch (err: any) {
       return rejectWithValue(err.message || 'Registration failed')
@@ -88,32 +61,33 @@ export const registerCustomer = createAsyncThunk(
   }
 )
 
-// LOGIN
+// LOGIN — cookie server pe set hoti hai, token client pe nahi aata
 export const loginCustomer = createAsyncThunk(
   'auth/login',
   async (input: { email: string; password: string }, { dispatch, rejectWithValue }) => {
     try {
-      // Use API route — sets httpOnly cookie for security
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),
       })
-      const data = await res.json()
-      if (!data.success) return rejectWithValue(data.error || 'Login failed')
 
-      const token = { accessToken: data.accessToken, expiresAt: data.expiresAt }
+      let data: any
+      try { data = await res.json() } catch {
+        return rejectWithValue('Unexpected server response.')
+      }
 
-      // Save to localStorage for Redux hydration on page reload
-      localStorage.setItem('shopify_token', token.accessToken)
-      localStorage.setItem('shopify_token_expires', token.expiresAt)
+      if (!res.ok || !data.success) return rejectWithValue(data.error || 'Login failed')
 
-      // Fetch customer profile
-      dispatch(fetchCustomer(token.accessToken))
+      // Cookie set ho gayi — ab /api/auth/me se customer fetch karo
+      const result = await dispatch(fetchCurrentUser())
+      if (fetchCurrentUser.rejected.match(result)) {
+        return rejectWithValue('Login succeeded but failed to load profile.')
+      }
 
-      // Attach buyer identity to existing cart
-      const cartId = localStorage.getItem('shopify_cart_id')
-      if (cartId) {
+      // Cart mein buyer identity attach karo
+      const cartId = typeof window !== 'undefined' ? localStorage.getItem('shopify_cart_id') : null
+      if (cartId && data.accessToken) {
         shopifyFetch({
           query: UPDATE_BUYER_IDENTITY,
           variables: { cartId, buyerIdentity: { email: input.email } },
@@ -121,23 +95,23 @@ export const loginCustomer = createAsyncThunk(
         }).catch(() => {})
       }
 
-      return token
+      return { expiresAt: data.expiresAt as string }
     } catch (err: any) {
       return rejectWithValue(err.message || 'Login failed')
     }
   }
 )
 
-// FETCH CUSTOMER PROFILE
-export const fetchCustomer = createAsyncThunk(
-  'auth/fetchCustomer',
-  async (customerAccessToken: string, { rejectWithValue }) => {
+// FETCH CURRENT USER — cookie se token server pe padhta hai, client ko token nahi milta
+export const fetchCurrentUser = createAsyncThunk(
+  'auth/fetchCurrentUser',
+  async (_, { rejectWithValue }) => {
     try {
-      const data = await shopifyFetch<{ customer: Customer }>({
-        query: GET_CUSTOMER,
-        variables: { customerAccessToken },
-      })
-      return data.customer
+      const res  = await fetch('/api/auth/me')
+      const data = await res.json()
+      // customer null = no valid session
+      if (!data.customer) return rejectWithValue('No session')
+      return { customer: data.customer as Customer, accessToken: data.accessToken as string }
     } catch (err: any) {
       return rejectWithValue(err.message)
     }
@@ -147,21 +121,8 @@ export const fetchCustomer = createAsyncThunk(
 // LOGOUT
 export const logoutCustomer = createAsyncThunk(
   'auth/logout',
-  async (_, { getState }) => {
-    const state = getState() as { auth: AuthState }
-    const token = state.auth.accessToken
-    if (token) {
-      try {
-        await shopifyFetch({
-          query: CUSTOMER_LOGOUT,
-          variables: { customerAccessToken: token },
-        })
-      } catch {}
-    }
-    // Clear httpOnly cookie via API route
+  async () => {
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
-    localStorage.removeItem('shopify_token')
-    localStorage.removeItem('shopify_token_expires')
   }
 )
 
@@ -176,38 +137,32 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     // REGISTER
     builder
-      .addCase(registerCustomer.pending, (state) => {
-        state.loading = true
-        state.error   = null
-      })
-      .addCase(registerCustomer.fulfilled, (state) => {
-        state.loading = false
-      })
-      .addCase(registerCustomer.rejected, (state, action) => {
-        state.loading = false
-        state.error   = action.payload as string
-      })
+      .addCase(registerCustomer.pending,   (state) => { state.loading = true;  state.error = null })
+      .addCase(registerCustomer.fulfilled, (state) => { state.loading = false })
+      .addCase(registerCustomer.rejected,  (state, action) => { state.loading = false; state.error = action.payload as string })
 
     // LOGIN
     builder
-      .addCase(loginCustomer.pending, (state) => {
-        state.loading = true
-        state.error   = null
-      })
+      .addCase(loginCustomer.pending,   (state) => { state.loading = true;  state.error = null })
       .addCase(loginCustomer.fulfilled, (state, action) => {
-        state.loading     = false
-        state.accessToken = action.payload.accessToken
-        state.expiresAt   = action.payload.expiresAt
+        state.loading   = false
+        state.expiresAt = action.payload.expiresAt
       })
-      .addCase(loginCustomer.rejected, (state, action) => {
-        state.loading = false
-        state.error   = action.payload as string
-      })
+      .addCase(loginCustomer.rejected,  (state, action) => { state.loading = false; state.error = action.payload as string })
 
-    // FETCH CUSTOMER
+    // FETCH CURRENT USER
     builder
-      .addCase(fetchCustomer.fulfilled, (state, action) => {
-        state.customer = action.payload
+      .addCase(fetchCurrentUser.pending,   (state) => { state.loading = true;  state.error = null })
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.loading     = false
+        state.customer    = action.payload.customer
+        state.accessToken = action.payload.accessToken
+      })
+      .addCase(fetchCurrentUser.rejected, (state) => {
+        state.loading     = false
+        state.customer    = null
+        state.accessToken = null
+        state.expiresAt   = null
       })
 
     // LOGOUT
@@ -216,6 +171,7 @@ const authSlice = createSlice({
         state.customer    = null
         state.accessToken = null
         state.expiresAt   = null
+        state.loading     = false
       })
   },
 })

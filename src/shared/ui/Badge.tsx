@@ -70,3 +70,44 @@ export function ProductGridSkeleton({ count = 8, cols = 4 }: { count?: number; c
     </div>
   )
 }
+// ── Account Page Skeleton ─────────────────────────────────────
+export function AccountPageSkeleton() {
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-pulse space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Skeleton className="w-14 h-14 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+        </div>
+        <Skeleton className="h-8 w-20 rounded-btn" />
+      </div>
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        {[1,2,3].map(i => (
+          <div key={i} className="bg-surface-light dark:bg-surface-dark rounded-card p-5 text-center space-y-3">
+            <Skeleton className="w-6 h-6 rounded-full mx-auto" />
+            <Skeleton className="h-7 w-8 mx-auto" />
+            <Skeleton className="h-3 w-16 mx-auto" />
+          </div>
+        ))}
+      </div>
+      {/* Nav links */}
+      <div className="bg-surface-light dark:bg-surface-dark rounded-card divide-y divide-border-light dark:divide-border-dark">
+        {[1,2,3,4].map(i => (
+          <div key={i} className="flex items-center gap-4 px-5 py-4">
+            <Skeleton className="w-9 h-9 rounded-btn flex-shrink-0" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-48" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

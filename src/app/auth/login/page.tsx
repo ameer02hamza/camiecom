@@ -65,23 +65,26 @@ function LoginForm() {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-sm font-medium text-ink-1 dark:text-ink-dk1">Password</label>
-              <button type="button" className="text-xs text-brand-warm hover:underline">Forgot password?</button>
+              <Link href="/auth/forgot-password" className="text-xs text-brand-warm hover:underline">Forgot password?</Link>
             </div>
-            <Input
-              type={showPw ? 'text' : 'password'}
-              required
-              value={form.password}
-              onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-              placeholder="••••••••"
-              className="pr-11"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPw(!showPw)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-2 dark:text-ink-dk2"
-            >
-              {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
+            {/* relative wrapper — eye button absolute ke andar rahe */}
+            <div className="relative">
+              <Input
+                type={showPw ? 'text' : 'password'}
+                required
+                value={form.password}
+                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                placeholder="••••••••"
+                className="pr-11"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw(!showPw)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-2 dark:text-ink-dk2 hover:text-ink-1 dark:hover:text-ink-dk1 transition-colors"
+              >
+                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           <label className="flex items-center gap-2 cursor-pointer">
