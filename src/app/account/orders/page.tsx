@@ -314,9 +314,10 @@ export default function OrdersPage() {
               const itemCount = items.reduce((s, i) => s + i.quantity, 0);
 
               return (
-                <div
+                <Link
                   key={order.id}
-                  className="bg-surface-light dark:bg-surface-dark rounded-card shadow-soft overflow-hidden"
+                  href={`/account/orders/${encodeURIComponent(order.id)}`}
+                  className="block bg-surface-light dark:bg-surface-dark rounded-card shadow-soft overflow-hidden hover:shadow-hover transition-shadow"
                 >
                   {/* ── Card Header ── */}
                   <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-border-light dark:border-border-dark bg-bg-light dark:bg-bg-dark">
@@ -410,7 +411,7 @@ export default function OrdersPage() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

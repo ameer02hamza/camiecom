@@ -89,7 +89,11 @@ export default function AccountPage() {
   // - customer nahi + loading → fetch ho raha hai → skeleton
   // - customer nahi + loading false → fetch fail ya nahi hua → redirect
   if (!accessToken) return <AccountPageSkeleton />
-  if (loading || !customer) return <AccountPageSkeleton />
+  if (loading && !customer) return <AccountPageSkeleton />
+  if (!loading && !customer) {
+    // Fetch fail hua — login pe bhejo
+    return <AccountPageSkeleton />
+  }
 
   const activeOrder = orders.find(
     (o) =>
@@ -249,8 +253,9 @@ export default function AccountPage() {
               );
 
               return (
-                <div
+                <Link
                   key={order.id}
+                  href={`/account/orders/${encodeURIComponent(order.id)}`}
                   className="flex items-center gap-4 px-6 py-4 hover:bg-bg-light dark:hover:bg-bg-dark transition-colors"
                 >
                   {/* Product thumbnail */}
@@ -301,7 +306,7 @@ export default function AccountPage() {
                       {formatPrice(parseFloat(order.currentTotalPrice.amount))}
                     </p>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
