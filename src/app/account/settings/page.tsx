@@ -12,7 +12,6 @@ type Tab = 'profile' | 'password' | 'preferences'
 export default function SettingsPage() {
   const dispatch    = useAppDispatch()
   const { customer, accessToken } = useAuthGuard()
-  console.log("Customer in SettingsPage:", customer) // Debugging log
 
   const [tab, setTab]       = useState<Tab>('profile')
   const [saving, setSaving] = useState(false)

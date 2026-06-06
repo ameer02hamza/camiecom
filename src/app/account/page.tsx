@@ -123,12 +123,7 @@ export default function AccountPage() {
             </p>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-1.5 text-sm text-ink-2 dark:text-ink-dk2 hover:text-brand-red transition-colors"
-        >
-          <LogOut size={15} /> Sign out
-        </button>
+    
       </div>
 
       {/* Quick Stats */}

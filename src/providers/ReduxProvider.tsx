@@ -4,13 +4,22 @@ import { Provider } from 'react-redux'
 import { store } from '@/store'
 import { restoreCart } from '@/features/cart/store/cartSlice'
 import { fetchCurrentUser } from '@/features/auth/store/authSlice'
+import { setTheme, getInitialTheme } from '@/features/ui/store/uiSlice'
+import { restoreWishlist } from '@/features/wishlist/store/wishlistSlice'
 
 function AppRestorer() {
   useEffect(() => {
-    // Cart restore karo localStorage se
+    // 1. Theme — localStorage se read karo, html class lagao
+    const savedTheme = getInitialTheme()
+    store.dispatch(setTheme(savedTheme))
+
+    // 2. Cart restore
     store.dispatch(restoreCart())
-    // Auth session check karo cookie se — globally on mount
-    // Isse Navbar pe bhi user turant dikh ta hai refresh ke baad
+
+    // 3. Wishlist restore
+    store.dispatch(restoreWishlist())
+
+    // 4. Auth session check
     store.dispatch(fetchCurrentUser())
   }, [])
   return null

@@ -92,6 +92,12 @@ export default function ProductPage() {
 
   const handleAddToCart = async () => {
     if (!inStock) return
+    // Validate — size option hai toh select karna zaroori hai
+    const hasSize = product.options.some(o => o.name === 'Size')
+    if (hasSize && !selectedOptions['Size']) {
+      dispatch(addToast({ message: 'Please select a size before adding to cart', type: 'error' }))
+      return
+    }
     const variant = selectedVariant ?? product.variants[0]
     if (!variant) return
     setAdded(false)
@@ -145,7 +151,9 @@ export default function ProductPage() {
           <h1 className="font-display text-4xl lg:text-5xl text-ink-1 dark:text-ink-dk1 tracking-heading leading-tight mb-4">{product.title}</h1>
 
           <div className="flex items-center gap-3 mb-6">
-            <StarRating rate={product.rating.rate} count={product.rating.count} size="md" />
+            {product.rating.count > 0 && (
+                  <StarRating rate={product.rating.rate} count={product.rating.count} size="md" />
+                )}
             {!inStock && (
               <span className="text-xs font-semibold tracking-label uppercase px-3 py-1 rounded-pill bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
                 Out of Stock

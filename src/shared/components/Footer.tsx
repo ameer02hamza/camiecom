@@ -8,22 +8,22 @@ import { useAppSelector } from "@/store/hooks";
 
 const LINKS = {
   Shop: [
-    ["All Products", "/shop"],
-    ["New Arrivals", "/shop"],
-    ["Sale", "/shop"],
-    ["Collections", "/shop"],
+    ["All Products",  "/shop"],
+    ["New Arrivals",  "/collections/new-arrivals"],
+    ["Collections",   "/collections/new-arrivals"],
+    ["Sale",          "/shop?sort=price-asc"],
   ],
   Info: [
-    ["About Us", "/about"],
-    ["Contact", "/contact"],
-    ["Sustainability", "/about"],
-    ["Careers", "/about"],
+    ["About Us",      "/about"],
+    ["Contact",       "/contact"],
+    ["Sustainability","/about"],
+    ["Careers",       "/contact"],
   ],
   Help: [
     ["Shipping Info", "/contact"],
-    ["Returns", "/contact"],
-    ["Size Guide", "/shop"],
-    ["FAQ", "/contact"],
+    ["Returns",       "/contact"],
+    ["Size Guide",    "/contact"],
+    ["FAQ",           "/contact"],
   ],
 };
 

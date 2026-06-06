@@ -84,7 +84,6 @@ export async function POST(req: NextRequest) {
       },
     }
 
-    console.log('Creating draft order...')
     const draftRes = await fetch(`${ADMIN_ENDPOINT}/draft_orders.json`, {
       method:  'POST',
       headers: {
@@ -104,7 +103,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { draft_order } = await draftRes.json()
-    console.log('Draft order created:', draft_order.id)
 
     // ── Step 2: Complete karo — real order banta hai, inventory deduct hoti hai
     const completeRes = await fetch(
@@ -153,7 +151,6 @@ export async function POST(req: NextRequest) {
     }
 
     const { draft_order: completed } = await completeRes.json()
-    console.log('Order completed! Shopify order ID:', completed.order_id)
 
     // ── Step 3: Return order data to frontend ─────────────────────────────────
     return NextResponse.json({
