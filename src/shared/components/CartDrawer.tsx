@@ -15,6 +15,8 @@ export default function CartDrawer() {
   const router      = useRouter()
   const { items, isOpen, totalAmount, totalQuantity, isLoading } = useAppSelector(s => s.cart)
   const accessToken = useAppSelector(s => s.auth.accessToken)
+  const customer    = useAppSelector(s => s.auth.customer)
+  const authLoading = useAppSelector(s => s.auth.loading)
   const [showLoginModal, setShowLoginModal] = useState(false)
 
   if (!isOpen) return null
@@ -28,7 +30,9 @@ export default function CartDrawer() {
   }
 
   const handleCheckout = () => {
-    if (!accessToken) {
+    // Auth still loading — wait karo
+    if (authLoading) return
+    if (!accessToken && !customer) {
       // Not logged in → show login modal (keep drawer open behind it)
       setShowLoginModal(true)
     } else {
