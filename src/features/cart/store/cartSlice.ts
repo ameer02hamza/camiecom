@@ -78,19 +78,7 @@ function mapCart(cart: ShopifyCart) {
     quantity: node.quantity,
   }))
 
-  // cart.checkoutUrl from Storefront API looks like:
-  //   https://store.myshopify.com/cart/c/TOKEN  (shows storefront cart first)
-  // We need:
-  //   https://store.myshopify.com/checkouts/cn/TOKEN  (goes directly to checkout)
-  //
-  // TOKEN is the base64 part after the last slash in cart.id:
-  //   gid://shopify/Cart/TOKEN  →  TOKEN
-  const rawUrl     = cart.checkoutUrl ?? ''
-  const cartToken  = cart.id?.split('/').pop() ?? ''
-  const domain     = rawUrl ? new URL(rawUrl).origin : ''
-  const checkoutUrl = cartToken && domain
-    ? `${domain}/checkouts/cn/${cartToken}`
-    : rawUrl
+  const checkoutUrl = cart.checkoutUrl ?? ''
 
   return {
     items,

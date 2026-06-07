@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -11,6 +12,7 @@ import Button from '@/shared/ui/Button'
 import LoginModal from '@/shared/components/LoginModal'
 
 export default function CartDrawer() {
+  const t           = useTranslations('cart')
   const dispatch    = useAppDispatch()
   const router      = useRouter()
   const { items, isOpen, totalAmount, totalQuantity, isLoading } = useAppSelector(s => s.cart)
@@ -126,7 +128,7 @@ export default function CartDrawer() {
               <div className="flex justify-between text-ink-2 dark:text-ink-dk2">
                 <span>Shipping</span>
                 <span className={shipping === 0 ? 'text-brand-sage font-medium' : ''}>
-                  {shipping === 0 ? 'Free' : formatPrice(shipping)}
+                  {shipping === 0 ? t('shipping_free') : formatPrice(shipping)}
                 </span>
               </div>
               {shipping > 0 && (

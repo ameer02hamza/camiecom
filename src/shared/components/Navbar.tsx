@@ -1,251 +1,264 @@
-"use client";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useRef, useState, useEffect } from "react";
-import {
-  ShoppingBag,
-  Search,
-  Heart,
-  Menu,
-  Sun,
-  Moon,
-  UserRound,
-  Settings,
-  Package,
-  MapPin,
-  LogOut,
-  ChevronDown,
-} from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { toggleCart } from "@/features/cart/store/cartSlice";
-import {
-  openMobileMenu,
-  openSearch,
-  toggleTheme,
-} from "@/features/ui/store/uiSlice";
-import { logoutCustomer } from "@/features/auth/store/authSlice";
-import { cn } from "@/shared/utils/cn";
-import { SITE_NAME } from "@/shared/constants/config";
+'use client'
+import { Search, Moon, Sun, ShoppingBag, Menu, Globe, ChevronDown, User, Heart, Package, Settings, MapPin, LogOut } from 'lucide-react'
+import { useTranslations, useLocale } from 'next-intl'
+import { Link, usePathname, useRouter } from '@/i18n/navigation'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { toggleCart } from '@/features/cart/store/cartSlice'
+import { openSearch, openMobileMenu } from '@/features/ui/store/uiSlice'
+import { logoutCustomer } from '@/features/auth/store/authSlice'
+import { useEffect, useRef, useState } from 'react'
+import { cn } from '@/shared/utils/cn'
 
-const NAV_LINKS = [
-  { href: "/shop", label: "Shop" },
-  { href: "/collections/new-arrivals", label: "Collections" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-];
+/* ── Language Switcher ── */
+function LanguageSwitcher() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const currentLocale = useLocale()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
 
-const DROPDOWN_ITEMS = [
-  { href: "/account", label: "My Account", icon: UserRound },
-  { href: "/account/orders", label: "Orders", icon: Package },
-  { href: "/account/wishlist", label: "Wishlist", icon: Heart },
-  { href: "/account/addresses", label: "Addresses", icon: MapPin },
-  { href: "/account/settings", label: "Settings", icon: Settings },
-];
+  const LANGS = [
+    { code: 'en', label: 'English' },
+    { code: 'fr', label: 'Français' },
+  ]
 
-export default function Navbar() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const dispatch = useAppDispatch();
+  const switchLocale = (locale: string) => {
+    setOpen(false)
+    if (locale === currentLocale) return
+    router.replace(pathname, { locale })
+  }
 
-  const cartCount = useAppSelector((s) => s.cart.totalQuantity);
-  const wishlistCount = useAppSelector((s) => s.wishlist.items.length);
-  const theme = useAppSelector((s) => s.ui.theme);
-  const customer = useAppSelector((s) => s.auth.customer);
-  const authLoading = useAppSelector((s) => s.auth.loading);
-
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  // Close dropdown on route change
-  useEffect(() => {
-    setDropdownOpen(false);
-  }, [pathname]);
-
-  const handleLogout = async () => {
-    setDropdownOpen(false);
-    await dispatch(logoutCustomer());
-    router.push("/");
-  };
-
-  // Avatar initials from customer name
-  const initials = customer
-    ? `${customer.firstName?.[0] ?? ""}${customer.lastName?.[0] ?? ""}`.toUpperCase() ||
-      "U"
-    : "";
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   return (
-    <header className="sticky top-0 z-50 bg-bg-light/90 dark:bg-bg-dark/90 backdrop-blur-xl border-b border-border-light dark:border-border-dark">
-      {/* Promo bar */}
-      <div className="bg-brand-dark dark:bg-black text-brand-light text-center text-xs py-2 px-4 tracking-label">
-        Free shipping on orders over $15
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1 p-2 rounded-btn hover:bg-border-light dark:hover:bg-border-dark transition-colors text-ink-1 dark:text-ink-dk1"
+      >
+        <Globe size={18} />
+        <span className="text-xs font-medium uppercase hidden sm:block">{currentLocale}</span>
+        <ChevronDown size={13} className={cn('transition-transform', open && 'rotate-180')} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 w-36 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-card shadow-soft z-50 overflow-hidden">
+          {LANGS.map(({ code, label }) => (
+            <button
+              key={code}
+              onClick={() => switchLocale(code)}
+              className={cn(
+                'w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between',
+                currentLocale === code
+                  ? 'bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark font-medium'
+                  : 'text-ink-1 dark:text-ink-dk1 hover:bg-border-light dark:hover:bg-border-dark'
+              )}
+            >
+              {label}
+              {currentLocale === code && <span className="text-[10px] opacity-70">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Theme Toggle ── */
+function ThemeToggle() {
+  const [dark, setDark] = useState(false)
+  useEffect(() => {
+    const saved = localStorage.getItem('theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (saved === 'dark' || (!saved && prefersDark)) {
+      document.documentElement.classList.add('dark')
+      setDark(true)
+    }
+  }, [])
+  const toggle = () => {
+    const next = !dark
+    setDark(next)
+    document.documentElement.classList.toggle('dark', next)
+    localStorage.setItem('theme', next ? 'dark' : 'light')
+  }
+  return (
+    <button onClick={toggle} className="p-2 rounded-btn hover:bg-border-light dark:hover:bg-border-dark transition-colors text-ink-1 dark:text-ink-dk1">
+      {dark ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
+  )
+}
+
+/* ── Account Dropdown ── */
+function AccountMenu() {
+  const dispatch   = useAppDispatch()
+  const locale     = useLocale()
+  const { customer, accessToken } = useAppSelector(s => s.auth)
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  const href = (path: string) => path
+  const isLoggedIn = !!accessToken && !!customer
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  if (!isLoggedIn) {
+    return (
+      <Link
+        href={href('/auth/login')}
+        className="p-2 rounded-btn hover:bg-border-light dark:hover:bg-border-dark transition-colors text-ink-1 dark:text-ink-dk1"
+      >
+        <User size={18} />
+      </Link>
+    )
+  }
+
+  const firstName = customer.firstName || customer.email.split('@')[0]
+
+  const MENU_ITEMS = [
+    { icon: Package,  label: 'Orders',    href: href('/account/orders')    },
+    { icon: Heart,    label: 'Wishlist',  href: href('/account/wishlist')  },
+    { icon: MapPin,   label: 'Addresses', href: href('/account/addresses') },
+    { icon: Settings, label: 'Settings',  href: href('/account/settings')  },
+  ]
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 px-2 py-1.5 rounded-btn hover:bg-border-light dark:hover:bg-border-dark transition-colors text-ink-1 dark:text-ink-dk1"
+      >
+        <div className="w-6 h-6 rounded-full bg-brand-dark dark:bg-brand-light flex items-center justify-center text-[11px] font-bold text-brand-light dark:text-brand-dark flex-shrink-0">
+          {firstName[0].toUpperCase()}
+        </div>
+        <span className="text-sm font-medium hidden sm:block max-w-[80px] truncate">{firstName}</span>
+        <ChevronDown size={13} className={cn('transition-transform', open && 'rotate-180')} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 w-48 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-card shadow-soft z-50 overflow-hidden">
+          <div className="px-4 py-3 border-b border-border-light dark:border-border-dark">
+            <p className="text-xs font-semibold text-ink-1 dark:text-ink-dk1 truncate">{firstName}</p>
+            <p className="text-xs text-ink-2 dark:text-ink-dk2 truncate">{customer.email}</p>
+          </div>
+          {MENU_ITEMS.map(({ icon: Icon, label, href: h }) => (
+            <Link
+              key={label}
+              href={h}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-1 dark:text-ink-dk1 hover:bg-border-light dark:hover:bg-border-dark transition-colors"
+            >
+              <Icon size={15} className="text-ink-2 dark:text-ink-dk2 flex-shrink-0" />
+              {label}
+            </Link>
+          ))}
+          <div className="border-t border-border-light dark:border-border-dark">
+            <button
+              onClick={() => { setOpen(false); dispatch(logoutCustomer()) }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-brand-red hover:bg-border-light dark:hover:bg-border-dark transition-colors"
+            >
+              <LogOut size={15} className="flex-shrink-0" />
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Main Navbar ── */
+export default function Navbar() {
+  const t         = useTranslations('nav')
+  const dispatch  = useAppDispatch()
+  const pathname  = usePathname()
+  const cartCount = useAppSelector(s => s.cart.totalQuantity)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const NAV_LINKS = [
+    { href: '/shop',                     label: t('shop')        },
+    { href: '/collections/new-arrivals', label: t('collections') },
+    { href: '/about',                    label: t('about')       },
+    { href: '/contact',                  label: t('contact')     },
+  ]
+
+  return (
+    <header className={cn(
+      'sticky top-0 z-50 w-full transition-all duration-300',
+      scrolled
+        ? 'bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-sm shadow-soft border-b border-border-light dark:border-border-dark'
+        : 'bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark'
+    )}>
+      <div className="bg-brand-dark text-brand-light text-center py-2 text-xs font-medium tracking-wide">
+        Free shipping on orders over $150 · Livraison gratuite dès 150$
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-8">
-          {/* Mobile menu */}
+        <div className="flex items-center justify-between h-16 gap-4">
           <button
             onClick={() => dispatch(openMobileMenu())}
-            className="lg:hidden p-2 rounded-btn hover:bg-border-light/60 dark:hover:bg-border-dark/60 transition-colors"
+            className="lg:hidden p-2 rounded-btn hover:bg-border-light dark:hover:bg-border-dark text-ink-1 dark:text-ink-dk1"
           >
-            <Menu size={20} />
+            <Menu size={22} />
           </button>
 
-          {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
-            <span className="font-display text-2xl font-bold text-brand-dark dark:text-brand-light tracking-heading">
-              {" "}
-              <span className="hidden sm:inline">{SITE_NAME}</span>
-            </span>
+          <Link href="/" className="font-display text-2xl font-bold text-brand-dark dark:text-brand-light flex-shrink-0">
+            Camiecom
           </Link>
 
-          {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-8">
-            {NAV_LINKS.map(({ href, label }) => (
-              <Link
-                key={label}
-                href={href}
+            {NAV_LINKS.map(({ href: h, label }) => (
+              <Link key={h} href={h}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-brand-dark dark:hover:text-brand-light",
-                  pathname.startsWith(href) && href !== "/"
-                    ? "text-brand-dark dark:text-brand-light"
-                    : "text-ink-2 dark:text-ink-dk2",
-                )}
-              >
+                  'text-sm font-medium transition-colors py-1',
+                  pathname === h ? 'text-brand-warm' : 'text-ink-1 dark:text-ink-dk1 hover:text-brand-warm'
+                )}>
                 {label}
               </Link>
             ))}
           </nav>
 
-          {/* Right icons */}
           <div className="flex items-center gap-1">
+            <LanguageSwitcher />
             <button
               onClick={() => dispatch(openSearch())}
-              className="p-2 rounded-btn hover:bg-border-light/60 dark:hover:bg-border-dark/60 transition-colors"
+              className="p-2 rounded-btn hover:bg-border-light dark:hover:bg-border-dark transition-colors text-ink-1 dark:text-ink-dk1"
             >
               <Search size={18} />
             </button>
-
-            <button
-              onClick={() => dispatch(toggleTheme())}
-              className="p-2 rounded-btn hover:bg-border-light/60 dark:hover:bg-border-dark/60 transition-colors"
-            >
-              {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
-
-
-            {/* Cart */}
+            <ThemeToggle />
+            <AccountMenu />
             <button
               onClick={() => dispatch(toggleCart())}
-              className="relative p-2 rounded-btn hover:bg-border-light/60 dark:hover:bg-border-dark/60 transition-colors"
+              className="relative p-2 rounded-btn hover:bg-border-light dark:hover:bg-border-dark transition-colors text-ink-1 dark:text-ink-dk1"
             >
               <ShoppingBag size={18} />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-brand-dark dark:bg-brand-light dark:text-brand-dark text-brand-light text-[10px] font-bold rounded-pill flex items-center justify-center px-1">
-                  {cartCount}
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark text-[10px] font-bold rounded-pill flex items-center justify-center">
+                  {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
             </button>
-
-
-            {/* ── User area ── */}
-            {!authLoading && customer ? (
-              // ── Logged in — avatar + dropdown ──
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setDropdownOpen((o) => !o)}
-                  className="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-btn hover:bg-border-light/60 dark:hover:bg-border-dark/60 transition-colors"
-                >
-                  {/* Avatar circle */}
-                  <div className="w-7 h-7 rounded-pill bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark text-xs font-bold flex items-center justify-center flex-shrink-0">
-                    {initials}
-                  </div>
-                  {/* Name — hidden on mobile */}
-                  <span className="hidden sm:block text-sm font-medium text-ink-1 dark:text-ink-dk1 max-w-[80px] truncate">
-                    {customer.firstName}
-                  </span>
-                  <ChevronDown
-                    size={14}
-                    className={cn(
-                      "text-ink-2 dark:text-ink-dk2 transition-transform duration-200",
-                      dropdownOpen ? "rotate-180" : "",
-                    )}
-                  />
-                </button>
-
-                {/* Dropdown */}
-                {dropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-card shadow-hover z-50 overflow-hidden animate-fade-in">
-                    {/* User info header */}
-                    <div className="px-4 py-3 border-b border-border-light dark:border-border-dark">
-                      <p className="text-sm font-semibold text-ink-1 dark:text-ink-dk1 truncate">
-                        {customer.firstName} {customer.lastName}
-                      </p>
-                      <p className="text-xs text-ink-2 dark:text-ink-dk2 truncate mt-0.5">
-                        {customer.email}
-                      </p>
-                    </div>
-
-                    {/* Menu items */}
-                    <div className="py-1">
-                      {DROPDOWN_ITEMS.map(({ href, label, icon: Icon }) => (
-                        <Link
-                          key={href}
-                          href={href}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink-1 dark:text-ink-dk1 hover:bg-border-light/60 dark:hover:bg-border-dark/60 transition-colors"
-                        >
-                          <Icon
-                            size={15}
-                            className="text-ink-2 dark:text-ink-dk2 flex-shrink-0"
-                          />
-                          {label}
-                        </Link>
-                      ))}
-                    </div>
-
-                    {/* Logout */}
-                    <div className="border-t border-border-light dark:border-border-dark py-1">
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                      >
-                        <LogOut size={15} className="flex-shrink-0" />
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              // ── Not logged in — simple icon ──
-              <Link
-                href="/account"
-                className="relative p-2 rounded-btn hover:bg-border-light/60 dark:hover:bg-border-dark/60 transition-colors"
-              >
-                <UserRound size={18} />
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-brand-red text-white text-[10px] font-bold rounded-pill flex items-center justify-center px-1">
-                    {wishlistCount}
-                  </span>
-                )}
-              </Link>
-            )}
           </div>
         </div>
       </div>
     </header>
-  );
+  )
 }

@@ -148,45 +148,61 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     setLoading(true);
     try {
-      // Step 1: Shopify cart mein buyer info pre-fill karo
-      // Taake Shopify checkout pe jaake dobara details na bharne paRein
-      if (cartId && checkoutUrl) {
-        await shopifyFetch({
-          query: UPDATE_BUYER_IDENTITY,
-          variables: {
-            cartId,
-            buyerIdentity: {
-              email: shipping.email,
-              phone: shipping.phone || undefined,
-              deliveryAddressPreferences: [
-                {
-                  deliveryAddress: {
-                    firstName: shipping.firstName,
-                    lastName: shipping.lastName,
-                    address1: shipping.address,
-                    city: shipping.city,
-                    province: shipping.state,
-                    zip: shipping.zip,
-                    countryCode: COUNTRY_CODES[shipping.country] ?? "US",
-                  },
-                },
-              ],
-            },
-          },
+      // Get checkoutUrl — use stored one or fetch fresh from Shopify
+      let finalCheckoutUrl = checkoutUrl;
+
+      if (!finalCheckoutUrl && cartId) {
+        const data = await shopifyFetch<{ cart: { checkoutUrl: string } | null }>({
+          query: `query GetCart($cartId: ID!) { cart(id: $cartId) { checkoutUrl } }`,
+          variables: { cartId },
+          cache: 'no-store',
         });
-        // Step 2: Shopify checkout pe redirect — details pehle se filled hongi
-        window.location.href = checkoutUrl;
+        finalCheckoutUrl = data.cart?.checkoutUrl ?? null;
+      }
+
+      if (!finalCheckoutUrl) {
+        alert('Could not load checkout. Please try adding an item to your cart again.');
+        setLoading(false);
         return;
       }
+
+      // Pre-fill buyer identity so Shopify checkout has shipping details ready
+      if (cartId) {
+        try {
+          await shopifyFetch({
+            query: UPDATE_BUYER_IDENTITY,
+            variables: {
+              cartId,
+              buyerIdentity: {
+                email: shipping.email,
+                phone: shipping.phone || undefined,
+                deliveryAddressPreferences: [
+                  {
+                    deliveryAddress: {
+                      firstName: shipping.firstName,
+                      lastName: shipping.lastName,
+                      address1: shipping.address,
+                      city: shipping.city,
+                      province: shipping.state,
+                      zip: shipping.zip,
+                      countryCode: COUNTRY_CODES[shipping.country] ?? 'US',
+                    },
+                  },
+                ],
+              },
+            },
+          });
+        } catch {
+          // Non-critical — continue to checkout even if prefill fails
+        }
+      }
+
+      window.location.href = finalCheckoutUrl;
     } catch (err) {
-      console.error("Buyer identity update failed:", err);
-      // Error pe bhi redirect karo — user manually fill kar lega
-      if (checkoutUrl) {
-        window.location.href = checkoutUrl;
-        return;
-      }
+      console.error('Checkout error:', err);
+      alert('Something went wrong. Please try again.');
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const inputClass =

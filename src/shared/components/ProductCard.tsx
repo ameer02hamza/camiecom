@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -13,6 +14,7 @@ import { toggleWishlist } from '@/features/wishlist/store/wishlistSlice'
 import { addToast } from '@/features/ui/store/uiSlice'
 
 export default function ProductCard({ product }: { product: Product }) {
+  const t          = useTranslations('product')
   const dispatch   = useAppDispatch()
   const [adding, setAdding]     = useState(false)
   const [added, setAdded]       = useState(false)
@@ -56,7 +58,7 @@ export default function ProductCard({ product }: { product: Product }) {
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {isOutOfStock
-              ? <Badge label="Out of Stock" variant="sale" />
+              ? <Badge label={t('out_of_stock')} variant="sale" />
               : <>
                   {product.isSale && savings > 0 && <Badge label={`-${Math.round((savings / product.compareAtPrice!) * 100)}%`} variant="sale" />}
                   {product.isNew && <Badge label="New" variant="new" />}
@@ -80,7 +82,7 @@ export default function ProductCard({ product }: { product: Product }) {
                 added    ? 'bg-brand-sage text-white' :
                 adding   ? 'bg-brand-dark/70 text-white cursor-wait' :
                            'bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark hover:opacity-90')}>
-              {isOutOfStock ? 'Out of Stock' :
+              {isOutOfStock ? t('out_of_stock') :
                added   ? <><Check size={14} /> Added!</> :
                adding  ? <><Loader2 size={14} className="animate-spin" /> Adding...</> :
                          <><ShoppingBag size={14} /> Add to Cart</>}

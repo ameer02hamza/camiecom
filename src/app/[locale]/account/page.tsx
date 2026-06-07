@@ -18,6 +18,7 @@ import { shopifyFetch, GET_CUSTOMER_ORDERS } from "@/shared/lib/shopify";
 import { formatPrice } from "@/shared/utils/formatPrice";
 import { useAuthGuard } from "@/shared/hooks/useAuthGuard";
 import { AccountPageSkeleton } from "@/shared/ui/Badge";
+import { useTranslations } from "next-intl";
 
 interface ShopifyOrder {
   id: string;
@@ -47,6 +48,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function AccountPage() {
+  const t = useTranslations('account')
   const dispatch    = useAppDispatch();
   const router      = useRouter();
   // ── useAuthGuard handles redirect + fetchCustomer ──
@@ -135,7 +137,7 @@ export default function AccountPage() {
             value: ordersLoading ? "..." : orders.length,
             href: "/account/orders",
           },
-          { icon: Heart, label: "Wishlist", value: wishlistCount, href: "/account/wishlist" },
+          { icon: Heart, label: t('wishlist'), value: wishlistCount, href: "/account/wishlist" },
           {
             icon: MapPin,
             label: "Addresses",
@@ -352,26 +354,26 @@ export default function AccountPage() {
         {[
           {
             icon: Package,
-            label: "Order History",
+            label: t('order_history'),
             sub: `${orders.length} order${orders.length !== 1 ? "s" : ""}`,
             href: "/account/orders",
           },
           {
             icon: Heart,
-            label: "Wishlist",
+            label: t('wishlist'),
             sub: `${wishlistCount} saved items`,
             href: "/account/wishlist",
           },
           {
             icon: MapPin,
-            label: "Saved Addresses",
-            sub: "Manage shipping addresses",
+            label: t('addresses'),
+            sub: t('manage_addresses'),
             href: "/account/addresses",
           },
           {
             icon: Settings,
-            label: "Account Settings",
-            sub: "Email, password, preferences",
+            label: t('settings'),
+            sub: t('settings_sub'),
             href: "/account/settings",
           },
         ].map(({ icon: Icon, label, sub, href }) => (

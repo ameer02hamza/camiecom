@@ -13,6 +13,7 @@ import {
 } from "@/shared/lib/shopifyMapper";
 import ProductCard from "@/shared/components/ProductCard";
 import type { Metadata } from "next";
+import { getTranslations } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: "Camiecom — Dress with Intention",
@@ -28,6 +29,7 @@ interface ShopifyCollectionNode {
 }
 
 export default async function HomePage() {
+  const t = await getTranslations('home')
   const hero = HERO_BANNERS[0];
 
   // Fetch in parallel
@@ -103,10 +105,10 @@ export default async function HomePage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="max-w-lg animate-slide-up">
               <span className="inline-block text-brand-warm text-xs font-semibold tracking-label uppercase mb-5 bg-brand-warm/20 backdrop-blur-sm px-3 py-1.5 rounded-pill">
-                {hero.badge}
+                {t('hero_badge')}
               </span>
               <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl text-white leading-tight tracking-heading mb-6">
-                {hero.title.split("\n").map((line, i) => (
+                {t('hero_title').split("\n").map((line, i) => (
                   <span key={i}>
                     {line}
                     {i === 0 && <br />}
@@ -114,20 +116,20 @@ export default async function HomePage() {
                 ))}
               </h1>
               <p className="text-white/75 text-lg leading-body mb-8">
-                {hero.subtitle}
+                {t('hero_subtitle')}
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
                   href="/shop"
                   className="inline-flex items-center gap-2 h-12 px-8 bg-white text-brand-dark rounded-btn text-sm font-semibold hover:opacity-90 hover:-translate-y-px transition-all"
                 >
-                  {hero.cta} <ArrowRight size={16} />
+                  {t('hero_cta')} <ArrowRight size={16} />
                 </Link>
                 <Link
                   href={"/collections/new-arrivals"}
                   className="inline-flex items-center gap-2 h-12 px-8 border border-white/50 text-white rounded-btn text-sm font-medium hover:bg-white/10 transition-all"
                 >
-                  {hero.ctaSecondary}
+                  {t('hero_cta_secondary')}
                 </Link>
               </div>
             </div>

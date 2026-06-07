@@ -5,6 +5,7 @@ import { Check, Loader2, X } from "lucide-react";
 import { SITE_NAME, SITE_TAGLINE } from "@/shared/constants/config";
 import { shopifyFetch, CUSTOMER_UPDATE } from "@/shared/lib/shopify";
 import { useAppSelector } from "@/store/hooks";
+import { useTranslations } from "next-intl";
 
 const LINKS = {
   Shop: [
@@ -28,6 +29,7 @@ const LINKS = {
 };
 
 function NewsletterSection() {
+  const t = useTranslations('footer')
   const { customer, accessToken } = useAppSelector((s) => s.auth);
   const [email, setEmail]   = useState("");
   const [loading, setLoading] = useState(false);
@@ -134,9 +136,9 @@ function NewsletterSection() {
               {loading ? (
                 <><Loader2 size={15} className="animate-spin" /> Saving...</>
               ) : isSubscribed ? (
-                "Unsubscribe"
+                t('newsletter_unsubscribe')
               ) : (
-                "Subscribe"
+                t('newsletter_subscribe')
               )}
             </button>
           </div>
@@ -150,7 +152,7 @@ function NewsletterSection() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
+              placeholder={t('newsletter_email')}
               required
               disabled={loading || status === "subscribed"}
               style={{ fontSize: '16px' }}
@@ -182,7 +184,7 @@ function NewsletterSection() {
               {loading ? (
                 <><Loader2 size={15} className="animate-spin" /> Subscribing...</>
               ) : (
-                "Subscribe"
+                t('newsletter_subscribe')
               )}
             </button>
           </form>
@@ -197,6 +199,7 @@ function NewsletterSection() {
 }
 
 export default function Footer() {
+  const t = useTranslations('footer')
   return (
     <footer className="border-t border-border-light dark:border-border-dark mt-24">
       <NewsletterSection />
@@ -234,7 +237,7 @@ export default function Footer() {
 
         <div className="border-t border-border-light dark:border-border-dark mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-xs text-ink-2 dark:text-ink-dk2">
-            © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
+            {t('rights', { year: new Date().getFullYear() })}
           </p>
           <div className="flex items-center gap-4 text-xs text-ink-2 dark:text-ink-dk2">
             <Link href="/contact" className="hover:text-brand-warm transition-colors">

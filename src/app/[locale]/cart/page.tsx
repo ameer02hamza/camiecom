@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -11,6 +12,7 @@ import Button from '@/shared/ui/Button'
 import LoginModal from '@/shared/components/LoginModal'
 
 export default function CartPage() {
+  const t = useTranslations('cart')
   const dispatch    = useAppDispatch()
   const router      = useRouter()
   const { items, totalAmount, totalQuantity, isLoading } = useAppSelector(s => s.cart)
@@ -40,7 +42,7 @@ export default function CartPage() {
         </div>
         <h1 className="font-display text-3xl tracking-heading mb-2">Your cart is empty</h1>
         <p className="text-ink-2 dark:text-ink-dk2 text-sm mb-8">Add something beautiful to get started.</p>
-        <Link href="/shop"><Button size="lg">Continue Shopping <ArrowRight size={16} /></Button></Link>
+        <Link href="/shop"><Button size="lg">{t('continue_shopping')} <ArrowRight size={16} /></Button></Link>
       </div>
     </div>
   )
@@ -105,7 +107,7 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between text-ink-2 dark:text-ink-dk2">
                 <span>Shipping</span>
-                <span className={shipping === 0 ? 'text-brand-sage font-medium' : ''}>{shipping === 0 ? 'Free' : formatPrice(shipping)}</span>
+                <span className={shipping === 0 ? 'text-brand-sage font-medium' : ''}>{shipping === 0 ? t('shipping_free') : formatPrice(shipping)}</span>
               </div>
               <div className="flex justify-between text-ink-2 dark:text-ink-dk2">
                 <span>Tax (est.)</span><span>{formatPrice(tax)}</span>
@@ -122,7 +124,7 @@ export default function CartPage() {
             </div>
 
             <div className="flex gap-2 mb-6">
-              <input type="text" placeholder="Coupon code" className="flex-1 h-10 px-3 text-sm border border-border-light dark:border-border-dark rounded-btn bg-transparent focus:outline-none focus:border-brand-dark dark:focus:border-brand-light" />
+              <input type="text" placeholder=t('coupon_placeholder') className="flex-1 h-10 px-3 text-sm border border-border-light dark:border-border-dark rounded-btn bg-transparent focus:outline-none focus:border-brand-dark dark:focus:border-brand-light" />
               <button className="h-10 px-4 text-sm font-medium border border-border-light dark:border-border-dark rounded-btn hover:bg-border-light dark:hover:bg-border-dark transition-colors">Apply</button>
             </div>
 

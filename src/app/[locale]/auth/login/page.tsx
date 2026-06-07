@@ -1,4 +1,5 @@
 'use client'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -10,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loginCustomer, clearError } from '@/features/auth/store/authSlice'
 
 function LoginForm() {
+  const t = useTranslations('auth')
   const dispatch = useAppDispatch()
   const router   = useRouter()
   const params   = useSearchParams()
@@ -49,12 +51,12 @@ function LoginForm() {
           )}
         </div>
 
-        {success && <AlertBanner type="success" message="Login successful! Redirecting..." className="mb-4" />}
+        {success && <AlertBanner type="success" message=t('login_success') className="mb-4" />}
         {error   && <AlertBanner type="error"   message={error}                            className="mb-4" />}
 
         <form onSubmit={handleSubmit} className="bg-surface-light dark:bg-surface-dark rounded-panel shadow-card p-8 space-y-5">
           <Input
-            label="Email"
+            label=t('email')
             type="email"
             required
             value={form.email}

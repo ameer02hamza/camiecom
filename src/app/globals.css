@@ -1,25 +1,56 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+@import "tailwindcss";
+
+/* ─── Tailwind v4 Custom Theme ─────────────────────────────── */
+@theme {
+  --color-brand-dark:  #2d2926;
+  --color-brand-light: #fafaf8;
+  --color-brand-warm:  #c4a882;
+  --color-brand-sage:  #6b8f71;
+  --color-brand-blue:  #5b8bab;
+  --color-brand-red:   #c4655a;
+
+  --color-surface-light: #ffffff;
+  --color-surface-dark:  #1e1c1a;
+  --color-bg-light:      #fafaf8;
+  --color-bg-dark:       #161412;
+  --color-border-light:  #e8e6e0;
+  --color-border-dark:   #2f2c29;
+
+  --color-ink-1:   #1a1815;
+  --color-ink-2:   #6b6560;
+  --color-ink-dk1: #f0ede8;
+  --color-ink-dk2: #8a8580;
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans:    'DM Sans', system-ui, sans-serif;
+
+  --radius-btn:   12px;
+  --radius-card:  16px;
+  --radius-panel: 24px;
+  --radius-pill:  999px;
+
+  --shadow-soft:  0 2px 8px rgba(0,0,0,0.08);
+  --shadow-card:  0 8px 32px rgba(0,0,0,0.10);
+  --shadow-hover: 0 16px 48px rgba(0,0,0,0.14);
+}
+
+/* ─── Dark mode variant ─────────────────────────────────────── */
+@variant dark (&:where(.dark, .dark *));
+
+/* ─── Base ──────────────────────────────────────────────────── */
 @layer base {
-  :root {
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-sans: 'DM Sans', system-ui, sans-serif;
-  }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; font-family: var(--font-sans); }
   body { background: #fafaf8; color: #1a1815; }
   html.dark body { background: #161412; color: #f0ede8; }
 }
 
+/* ─── Utilities ─────────────────────────────────────────────── */
 @layer utilities {
-  .font-display { font-family: var(--font-display); }
-  .text-balance { text-wrap: balance; }
-  .line-clamp-2 { display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden; }
-  .line-clamp-3 { display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden; }
+  .font-display   { font-family: var(--font-display); }
+  .text-balance   { text-wrap: balance; }
   .scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none; }
   .scrollbar-hide::-webkit-scrollbar { display:none; }
   .shimmer {
@@ -33,17 +64,18 @@
   }
 }
 
-@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-@keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-@keyframes slideDown { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
+/* ─── Keyframes ─────────────────────────────────────────────── */
+@keyframes shimmer    { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+@keyframes slideUp    { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes slideDown  { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
 @keyframes slideRight { from{transform:translateX(-100%)} to{transform:translateX(0)} }
-@keyframes slideLeft { from{transform:translateX(100%)} to{transform:translateX(0)} }
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
-@keyframes scaleIn { from{transform:scale(0.95);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes slideLeft  { from{transform:translateX(100%)} to{transform:translateX(0)} }
+@keyframes fadeIn     { from{opacity:0} to{opacity:1} }
+@keyframes scaleIn    { from{transform:scale(0.95);opacity:0} to{transform:scale(1);opacity:1} }
 
-.animate-slide-up { animation: slideUp 0.4s ease-out; }
-.animate-slide-down { animation: slideDown 0.3s cubic-bezier(0.4,0,0.2,1); }
+.animate-slide-up    { animation: slideUp 0.4s ease-out; }
+.animate-slide-down  { animation: slideDown 0.3s cubic-bezier(0.4,0,0.2,1); }
 .animate-slide-right { animation: slideRight 0.35s cubic-bezier(0.4,0,0.2,1); }
-.animate-slide-left { animation: slideLeft 0.35s cubic-bezier(0.4,0,0.2,1); }
-.animate-fade-in { animation: fadeIn 0.3s ease-out; }
-.animate-scale-in { animation: scaleIn 0.25s ease-out; }
+.animate-slide-left  { animation: slideLeft 0.35s cubic-bezier(0.4,0,0.2,1); }
+.animate-fade-in     { animation: fadeIn 0.3s ease-out; }
+.animate-scale-in    { animation: scaleIn 0.25s ease-out; }
