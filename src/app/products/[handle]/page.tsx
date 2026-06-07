@@ -18,6 +18,7 @@ import ProductCard from '@/shared/components/ProductCard'
 import Button from '@/shared/ui/Button'
 import ProductImageGallery from '@/shared/components/ProductImageGallery'
 import type { Product } from '@/shared/types/global.types'
+import { useRecentlyViewed } from '@/shared/hooks/useRecentlyViewed'
 
 export default function ProductPage() {
   const { handle } = useParams() as { handle: string }
@@ -26,6 +27,7 @@ export default function ProductPage() {
 
   const [product, setProduct]       = useState<Product | null>(null)
   const [related, setRelated]       = useState<Product[]>([])
+  const recentlyViewed = useRecentlyViewed(product)
   const [loading, setLoading]       = useState(true)
   const [notFound, setNotFound]     = useState(false)
 
@@ -294,6 +296,38 @@ export default function ProductPage() {
           <h2 className="font-display text-3xl tracking-heading text-ink-1 dark:text-ink-dk1 mb-8">You May Also Like</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             {related.map(p => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+      )}
+
+      {/* ── RECENTLY VIEWED ── */}
+      {recentlyViewed.length > 0 && (
+        <section className="mt-16 pt-12 border-t border-border-light dark:border-border-dark">
+          <h2 className="font-display text-3xl tracking-heading text-ink-1 dark:text-ink-dk1 mb-8">
+            Recently Viewed
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {recentlyViewed.map(p => (
+              <Link key={p.id} href={`/products/${p.handle}`} className="group">
+                <div className="aspect-[3/4] bg-surface-light dark:bg-surface-dark rounded-card overflow-hidden mb-2">
+                  {p.image ? (
+                    <Image
+                      src={p.image}
+                      alt={p.title}
+                      width={200}
+                      height={267}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-ink-2 dark:text-ink-dk2">
+                      <ShoppingBag size={24} />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs font-medium text-ink-1 dark:text-ink-dk1 line-clamp-1 group-hover:text-brand-warm transition-colors">{p.title}</p>
+                <p className="text-xs text-ink-2 dark:text-ink-dk2 mt-0.5">{formatPrice(p.price)}</p>
+              </Link>
+            ))}
           </div>
         </section>
       )}
