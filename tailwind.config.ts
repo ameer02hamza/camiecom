@@ -6,9 +6,9 @@ const config: Config = {
     extend: {
       colors: {
         brand: { dark:'#2d2926', light:'#fafaf8', warm:'#c4a882', sage:'#6b8f71', blue:'#5b8bab', red:'#c4655a' },
-        surface: { light:'#ffffff', dark:'#171717' },
-        bg: { light:'#fafaf8', dark:'#0f0f0f' },
-        border: { light:'#e8e6e0', dark:'#2a2a2a' },
+        surface: { light:'#ffffff', dark:'#1e1c1a' },
+        bg: { light:'#fafaf8', dark:'#161412' },
+        border: { light:'#e8e6e0', dark:'#2f2c29' },
         ink: { 1:'#1a1815', 2:'#6b6560', 'dk1':'#f0ede8', 'dk2':'#8a8580' },
       },
       fontFamily: {
