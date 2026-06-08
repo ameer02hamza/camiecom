@@ -1,81 +1,113 @@
-'use client'
-import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Eye, EyeOff, ArrowRight } from 'lucide-react'
-import Button from '@/shared/ui/Button'
-import Input from '@/shared/ui/Input'
-import AlertBanner from '@/shared/ui/AlertBanner'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { loginCustomer, clearError } from '@/features/auth/store/authSlice'
+"use client";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import Button from "@/shared/ui/Button";
+import Input from "@/shared/ui/Input";
+import AlertBanner from "@/shared/ui/AlertBanner";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { loginCustomer, clearError } from "@/features/auth/store/authSlice";
 
 function LoginForm() {
-  const t = useTranslations('auth')
-  const dispatch = useAppDispatch()
-  const router   = useRouter()
-  const params   = useSearchParams()
-  const redirect = params.get('redirect') || '/account'
+  const t = useTranslations("auth");
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const params = useSearchParams();
+  const redirect = params.get("redirect") || "/account";
 
-  const { loading, error, accessToken } = useAppSelector(s => s.auth)
+  const { loading, error, accessToken } = useAppSelector((s) => s.auth);
 
-  const [showPw, setShowPw]   = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [form, setForm]       = useState({ email: '', password: '', remember: false })
+  const [showPw, setShowPw] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    remember: false,
+  });
 
   useEffect(() => {
-    if (accessToken) router.replace(redirect)
-  }, [accessToken, router, redirect])
+    if (accessToken) router.replace(redirect);
+  }, [accessToken, router, redirect]);
 
-  useEffect(() => { return () => { dispatch(clearError()) } }, [dispatch])
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const result = await dispatch(loginCustomer({ email: form.email, password: form.password }))
+    e.preventDefault();
+    const result = await dispatch(
+      loginCustomer({ email: form.email, password: form.password }),
+    );
     if (loginCustomer.fulfilled.match(result)) {
-      setSuccess(true)
-      setTimeout(() => router.replace(redirect), 900)
+      setSuccess(true);
+      setTimeout(() => router.replace(redirect), 900);
     }
-  }
+  };
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="font-display text-4xl tracking-heading mb-2">Welcome back</h1>
-          <p className="text-sm text-ink-2 dark:text-ink-dk2">Sign in to your Camiecom account</p>
-          {redirect === '/checkout' && (
+          <h1 className="font-display text-4xl tracking-heading mb-2">
+            Welcome back
+          </h1>
+          <p className="text-sm text-ink-2 dark:text-ink-dk2">
+            Sign in to your Camiecom account
+          </p>
+          {redirect === "/checkout" && (
             <p className="mt-3 text-xs text-brand-warm bg-brand-warm/10 border border-brand-warm/20 rounded-btn px-3 py-2">
               Sign in to continue to checkout
             </p>
           )}
         </div>
 
-        {success && <AlertBanner type="success" message=t('login_success') className="mb-4" />}
-        {error   && <AlertBanner type="error"   message={error}                            className="mb-4" />}
+        {success && (
+          <AlertBanner
+            type="success"
+            message={t("login_success")}
+            className="mb-4"
+          />
+        )}
+        {error && <AlertBanner type="error" message={error} className="mb-4" />}
 
-        <form onSubmit={handleSubmit} className="bg-surface-light dark:bg-surface-dark rounded-panel shadow-card p-8 space-y-5">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-surface-light dark:bg-surface-dark rounded-panel shadow-card p-8 space-y-5"
+        >
           <Input
-            label=t('email')
+            label={t("email")}
             type="email"
             required
             value={form.email}
-            onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+            onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
             placeholder="your@camiecom.com"
           />
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium text-ink-1 dark:text-ink-dk1">Password</label>
-              <Link href="/auth/forgot-password" className="text-xs text-brand-warm hover:underline">Forgot password?</Link>
+              <label className="text-sm font-medium text-ink-1 dark:text-ink-dk1">
+                Password
+              </label>
+              <Link
+                href="/auth/forgot-password"
+                className="text-xs text-brand-warm hover:underline"
+              >
+                Forgot password?
+              </Link>
             </div>
             {/* relative wrapper — eye button absolute ke andar rahe */}
             <div className="relative">
               <Input
-                type={showPw ? 'text' : 'password'}
+                type={showPw ? "text" : "password"}
                 required
                 value={form.password}
-                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, password: e.target.value }))
+                }
                 placeholder="••••••••"
                 className="pr-11"
               />
@@ -90,10 +122,17 @@ function LoginForm() {
           </div>
 
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={form.remember}
-              onChange={e => setForm(p => ({ ...p, remember: e.target.checked }))}
-              className="w-4 h-4 rounded accent-brand-dark" />
-            <span className="text-sm text-ink-2 dark:text-ink-dk2">Remember me</span>
+            <input
+              type="checkbox"
+              checked={form.remember}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, remember: e.target.checked }))
+              }
+              className="w-4 h-4 rounded accent-brand-dark"
+            />
+            <span className="text-sm text-ink-2 dark:text-ink-dk2">
+              Remember me
+            </span>
           </label>
 
           <Button type="submit" fullWidth size="lg" loading={loading}>
@@ -102,9 +141,9 @@ function LoginForm() {
         </form>
 
         <p className="text-center text-sm text-ink-2 dark:text-ink-dk2 mt-6">
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account?{" "}
           <Link
-            href={`/auth/register${redirect !== '/account' ? `?redirect=${redirect}` : ''}`}
+            href={`/auth/register${redirect !== "/account" ? `?redirect=${redirect}` : ""}`}
             className="text-brand-warm font-medium hover:underline"
           >
             Create one
@@ -112,7 +151,7 @@ function LoginForm() {
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 export default function LoginPage() {
@@ -120,5 +159,5 @@ export default function LoginPage() {
     <Suspense>
       <LoginForm />
     </Suspense>
-  )
+  );
 }
