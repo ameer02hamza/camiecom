@@ -90,7 +90,21 @@ export default async function HomePage() {
     <div>
       {/* ── HERO ── */}
       <section className="relative h-[85vh] min-h-[560px] overflow-hidden">
-        <Image
+        <video
+  autoPlay
+  muted
+  loop
+  poster={hero.image}
+  playsInline
+  className="absolute inset-0 w-full h-full object-cover object-center"
+>
+<source 
+  src="https://www.pexels.com/download/video/7287924/" 
+  type="video/mp4" 
+/>
+</video>
+        
+        {/* <Image
           src={hero.image}
           alt="Hero"
           fill
@@ -98,7 +112,7 @@ export default async function HomePage() {
           className="object-cover object-center"
           sizes="100vw"
           loading="eager"
-        />
+        /> */}
         <div className="absolute inset-0 bg-gradient-to-r from-brand-dark/70 via-brand-dark/30 to-transparent" />
         <div className="absolute inset-0 flex items-center">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
