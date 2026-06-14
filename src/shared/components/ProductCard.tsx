@@ -53,7 +53,8 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="relative aspect-[3/4] overflow-hidden bg-border-light dark:bg-border-dark">
           <Image src={product.images[0]?.url || ''} alt={product.title} fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,25vw" />
+            sizes="(max-width:640px) 50vw,(max-width:1024px) 33vw,25vw" 
+                  loading="eager" />
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -85,7 +86,7 @@ export default function ProductCard({ product }: { product: Product }) {
               {isOutOfStock ? t('out_of_stock') :
                added   ? <><Check size={14} /> Added!</> :
                adding  ? <><Loader2 size={14} className="animate-spin" /> Adding...</> :
-                         <><ShoppingBag size={14} /> Add to Cart</>}
+                         <><ShoppingBag size={14} /> {t("add_to_cart")}</>}
             </button>
           </div>
         </div>

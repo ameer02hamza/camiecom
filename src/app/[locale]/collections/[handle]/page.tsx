@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronDown, X, Loader2, SlidersHorizontal } from 'lucide-react'
 import { shopifyFetch, GET_COLLECTION_PRODUCTS, GET_COLLECTIONS } from '@/shared/lib/shopify'
+import { useTranslations } from 'next-intl'
 import { mapShopifyProduct, type ShopifyProductNode } from '@/shared/lib/shopifyMapper'
 import ProductCard from '@/shared/components/ProductCard'
 import { ProductGridSkeleton } from '@/shared/ui/Badge'
@@ -46,6 +47,7 @@ export default function CollectionPage() {
   const [products, setProducts]       = useState<Product[]>([])
   const [collectionMeta, setMeta]     = useState<{ title: string; description: string; image: string | null } | null>(null)
   const [allCollections, setAllCollections] = useState<CollectionNode[]>([])
+  const t = useTranslations('collection')
   const [loading, setLoading]         = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasNextPage, setHasNextPage] = useState(false)
@@ -151,9 +153,9 @@ export default function CollectionPage() {
         <div className="absolute inset-0 bg-brand-dark/55" />
         <div className="absolute inset-0 flex flex-col justify-end pb-8 max-w-7xl mx-auto px-4 sm:px-8 w-full">
           <nav className="flex items-center gap-2 text-white/60 text-xs mb-3">
-            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+            <Link href="/" className="hover:text-white transition-colors">{t("breadcrumb_home")}</Link>
             <span>/</span>
-            <Link href="/shop" className="hover:text-white transition-colors">Shop</Link>
+            <Link href="/shop" className="hover:text-white transition-colors">{t("breadcrumb_shop")}</Link>
             <span>/</span>
             <span className="text-white">{title}</span>
           </nav>
@@ -193,7 +195,7 @@ export default function CollectionPage() {
               {/* Size filter */}
               {availableSizes.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">Size</h3>
+                  <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">{t("size_label")}</h3>
                   <div className="flex flex-wrap gap-2">
                     {availableSizes.map(size => (
                       <button key={size} onClick={() => setSelectedSizes(toggleSet(selectedSizes, size))}
@@ -212,7 +214,7 @@ export default function CollectionPage() {
               {/* Color filter */}
               {availableColors.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">Color</h3>
+                  <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">{t("color_label")}</h3>
                   <div className="flex flex-wrap gap-2">
                     {availableColors.map(color => (
                       <button key={color} onClick={() => setSelectedColors(toggleSet(selectedColors, color))}
@@ -243,7 +245,7 @@ export default function CollectionPage() {
 
               {/* Sale toggle */}
               <div>
-                <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">Promotions</h3>
+                <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">{t("promotions")}</h3>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <div onClick={() => setShowSaleOnly(!showSaleOnly)}
                     className={cn('w-10 h-5 rounded-pill transition-colors relative cursor-pointer flex-shrink-0',
@@ -251,7 +253,7 @@ export default function CollectionPage() {
                     <div className={cn('absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform',
                       showSaleOnly ? 'translate-x-5' : 'translate-x-0.5')} />
                   </div>
-                  <span className="text-sm text-ink-1 dark:text-ink-dk1">Sale only</span>
+                  <span className="text-sm text-ink-1 dark:text-ink-dk1">{t("sale_only")}</span>
                 </label>
               </div>
 
@@ -264,7 +266,7 @@ export default function CollectionPage() {
 
               {/* All collections */}
               <div>
-                <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">Collections</h3>
+                <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">{t("collections_label")}</h3>
                 <div className="space-y-0.5">
                   {allCollections.map(c => (
                     <Link key={c.id} href={`/collections/${c.handle}`}
@@ -328,10 +330,10 @@ export default function CollectionPage() {
               <ProductGridSkeleton count={PAGE_SIZE} cols={3} />
             ) : filtered.length === 0 ? (
               <div className="text-center py-24 space-y-3">
-                <p className="text-ink-2 dark:text-ink-dk2 text-lg">No products match your filters.</p>
-                <button onClick={clearAllFilters} className="text-brand-warm text-sm hover:underline">Clear all filters</button>
+                <p className="text-ink-2 dark:text-ink-dk2 text-lg">{t("no_products")}</p>
+                <button onClick={clearAllFilters} className="text-brand-warm text-sm hover:underline">{t("clear_filters")}</button>
                 <br />
-                <Link href="/shop" className="text-brand-warm text-sm hover:underline">Browse all products →</Link>
+                <Link href="/shop" className="text-brand-warm text-sm hover:underline">{t("browse_all")}</Link>
               </div>
             ) : (
               <>

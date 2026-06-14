@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Mail, MessageSquare, Clock, CheckCircle } from "lucide-react";
 import Button from "@/shared/ui/Button";
-import type { Metadata } from "next";
+import { useTranslations } from "next-intl";
 
 export default function ContactPage() {
+  const t = useTranslations('contact')
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({
@@ -34,12 +35,11 @@ export default function ContactPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <div className="text-center mb-14">
         <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">
-          Get in touch
+          {t('label')}
         </p>
-        <h1 className="font-display text-5xl tracking-heading">Contact Us</h1>
+        <h1 className="font-display text-5xl tracking-heading">{t('title')}</h1>
         <p className="text-ink-2 dark:text-ink-dk2 mt-3 max-w-md mx-auto leading-body">
-          We'd love to hear from you. Send us a message and we'll respond within
-          one business day.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -47,33 +47,16 @@ export default function ContactPage() {
         {/* Info */}
         <div className="space-y-6">
           {[
-            {
-              icon: Mail,
-              title: "Email",
-              body: "hello@Camiecom-brand.com",
-              sub: "We reply within 24h",
-            },
-            {
-              icon: MessageSquare,
-              title: "Live Chat",
-              body: "Available in-app",
-              sub: "Mon–Fri, 9am–6pm GMT",
-            },
-            {
-              icon: Clock,
-              title: "Response Time",
-              body: "< 24 hours",
-              sub: "Usually much faster",
-            },
+            { icon: Mail,         title: t('email_title'),    body: t('email_body'),    sub: t('email_sub') },
+            { icon: MessageSquare,title: t('chat_title'),     body: t('chat_body'),     sub: t('chat_sub') },
+            { icon: Clock,        title: t('response_title'), body: t('response_body'), sub: t('response_sub') },
           ].map(({ icon: Icon, title, body, sub }) => (
             <div key={title} className="flex gap-4">
               <div className="w-10 h-10 bg-brand-warm/10 rounded-btn flex items-center justify-center flex-shrink-0">
                 <Icon size={18} className="text-brand-warm" />
               </div>
               <div>
-                <p className="font-medium text-sm text-ink-1 dark:text-ink-dk1">
-                  {title}
-                </p>
+                <p className="font-medium text-sm text-ink-1 dark:text-ink-dk1">{title}</p>
                 <p className="text-sm text-ink-2 dark:text-ink-dk2">{body}</p>
                 <p className="text-xs text-ink-2 dark:text-ink-dk2">{sub}</p>
               </div>
@@ -82,13 +65,13 @@ export default function ContactPage() {
 
           <div className="border border-border-light dark:border-border-dark rounded-card p-5 mt-4">
             <p className="text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-2">
-              Common questions
+              {t('faq_title')}
             </p>
             {[
-              "Shipping & tracking",
-              "Returns & exchanges",
-              "Size guide",
-              "Care instructions",
+              t('faq_shipping'),
+              t('faq_returns'),
+              t('faq_size'),
+              t('faq_care'),
             ].map((q) => (
               <button
                 key={q}
@@ -107,9 +90,9 @@ export default function ContactPage() {
               <div className="w-16 h-16 bg-brand-sage/10 rounded-panel flex items-center justify-center mx-auto mb-5">
                 <CheckCircle size={28} className="text-brand-sage" />
               </div>
-              <h2 className="font-display text-2xl mb-2">Message sent!</h2>
+              <h2 className="font-display text-2xl mb-2">{t('success_title')}</h2>
               <p className="text-sm text-ink-2 dark:text-ink-dk2">
-                We'll get back to you at {form.email} within 24 hours.
+                {t('success_body', { email: form.email })}
               </p>
             </div>
           ) : (
@@ -120,7 +103,7 @@ export default function ContactPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">
-                    Full Name
+                    {t('label_name')}
                   </label>
                   <input
                     required
@@ -132,7 +115,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">
-                    Email
+                    {t('label_email')}
                   </label>
                   <input
                     type="email"
@@ -146,7 +129,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">
-                  Subject
+                  {t('label_subject')}
                 </label>
                 <select
                   value={form.subject}
@@ -154,29 +137,29 @@ export default function ContactPage() {
                   required
                   className="w-full h-11 px-4 text-sm border border-border-light dark:border-border-dark rounded-btn bg-surface-light dark:bg-surface-dark text-ink-1 dark:text-ink-dk1 focus:outline-none focus:border-brand-dark dark:focus:border-brand-light transition-colors"
                 >
-                  <option value="">Select a topic…</option>
-                  <option>Order issue</option>
-                  <option>Return or exchange</option>
-                  <option>Product question</option>
-                  <option>Sizing help</option>
-                  <option>Other</option>
+                  <option value="">{t('subject_placeholder')}</option>
+                  <option>{t('subject_order')}</option>
+                  <option>{t('subject_return')}</option>
+                  <option>{t('subject_product')}</option>
+                  <option>{t('subject_sizing')}</option>
+                  <option>{t('subject_other')}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-1.5">
-                  Message
+                  {t('label_message')}
                 </label>
                 <textarea
                   required
                   rows={5}
                   value={form.message}
                   onChange={f("message")}
-                  placeholder="Tell us how we can help…"
+                  placeholder={t('message_placeholder')}
                   className="w-full px-4 py-3 text-sm border border-border-light dark:border-border-dark rounded-card bg-transparent focus:outline-none focus:border-brand-dark dark:focus:border-brand-light transition-colors resize-none"
                 />
               </div>
               <Button type="submit" fullWidth size="lg" loading={loading}>
-                Send Message
+                {t('send')}
               </Button>
             </form>
           )}

@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import { Heart, ShoppingBag, Check, ChevronDown, Truck, RotateCcw, Leaf, Loader2 } from 'lucide-react'
 import SizeGuideModal from '@/shared/components/SizeGuideModal'
 import { shopifyFetch, GET_PRODUCT, GET_PRODUCTS } from '@/shared/lib/shopify'
+import { useTranslations } from 'next-intl'
 import { mapShopifyProduct, type ShopifyProductNode } from '@/shared/lib/shopifyMapper'
 import { StarRating, Badge } from '@/shared/ui/Badge'
 import { formatPrice } from '@/shared/utils/formatPrice'
@@ -21,6 +22,7 @@ import type { Product } from '@/shared/types/global.types'
 import { useRecentlyViewed } from '@/shared/hooks/useRecentlyViewed'
 
 export default function ProductPage() {
+  const t = useTranslations("product_page")
   const { handle } = useParams() as { handle: string }
   const dispatch   = useAppDispatch()
   const wishlistItems = useAppSelector(s => s.wishlist.items)
@@ -77,8 +79,8 @@ export default function ProductPage() {
   if (notFound || !product) return (
     <div className="min-h-[60vh] flex items-center justify-center text-center px-4">
       <div>
-        <h1 className="font-display text-4xl mb-4">Product not found</h1>
-        <Link href="/shop" className="text-brand-warm underline">Back to shop</Link>
+        <h1 className="font-display text-4xl mb-4">{t("not_found_title")}</h1>
+        <Link href="/shop" className="text-brand-warm underline">{t("not_found_link")}</Link>
       </div>
     </div>
   )
@@ -105,33 +107,33 @@ export default function ProductPage() {
     setAdded(false)
     const result = await dispatch(shopifyAddToCart({ variantId: variant.id, quantity }))
     if (shopifyAddToCart.fulfilled.match(result)) {
-      dispatch(addToast({ message: 'Added to cart!', type: 'success' }))
+      dispatch(addToast({ message: t("added_to_cart"), type: 'success' }))
       dispatch(openCart())
       setAdded(true)
       setTimeout(() => setAdded(false), 1800)
     } else {
-      dispatch(addToast({ message: 'Could not add to cart. Try again.', type: 'error' }))
+      dispatch(addToast({ message: t("cart_error"), type: 'error' }))
     }
   }
 
   const handleWishlist = () => {
     dispatch(toggleWishlist({ id: product.id, handle: product.handle, title: product.title, price: product.price, image: product.images[0]?.url || '', category: product.category }))
-    dispatch(addToast({ message: isWishlisted ? 'Removed from wishlist' : 'Added to wishlist', type: isWishlisted ? 'info' : 'success' }))
+    dispatch(addToast({ message: isWishlisted ? 'Removed from wishlist' : t("wishlist_added"), type: isWishlisted ? 'info' : 'success' }))
   }
 
   const accordions = [
     { label: 'Description', content: product.description || 'No description available.' },
-    { label: 'Materials & Care', content: 'We use only the finest natural fibres. Dry clean or hand wash in cold water. Lay flat to dry. Store folded, not hung.' },
-    { label: 'Shipping & Returns', content: 'Free shipping on orders over $150. Free returns within 30 days of delivery. Items must be unworn with original tags attached.' },
+    { label: 'Materials & Care', content: '{t("accordion_materials_content")}' },
+    { label: 'Shipping & Returns', content: '{t("accordion_shipping_content")}' },
   ]
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Breadcrumbs */}
       <nav className="flex items-center gap-2 text-xs text-ink-2 dark:text-ink-dk2 mb-8">
-        <Link href="/" className="hover:text-brand-warm transition-colors">Home</Link>
+        <Link href="/" className="hover:text-brand-warm transition-colors">{t("breadcrumb_home")}</Link>
         <span>/</span>
-        <Link href="/shop" className="hover:text-brand-warm transition-colors">Shop</Link>
+        <Link href="/shop" className="hover:text-brand-warm transition-colors">{t("breadcrumb_shop")}</Link>
         <span>/</span>
         <span className="text-ink-1 dark:text-ink-dk1 font-medium">{product.title}</span>
       </nav>
@@ -224,7 +226,7 @@ export default function ProductPage() {
 
           {/* Quantity */}
           <div className="mb-6">
-            <p className="text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-3">Quantity</p>
+            <p className="text-sm font-medium text-ink-1 dark:text-ink-dk1 mb-3">{t("quantity")}</p>
             <div className={cn("inline-flex items-center border rounded-btn overflow-hidden", inStock ? "border-border-light dark:border-border-dark" : "border-border-light/40 dark:border-border-dark/40 opacity-40 pointer-events-none")}>
               <button onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 className="w-10 h-10 flex items-center justify-center hover:bg-border-light dark:hover:bg-border-dark transition-colors text-lg">−</button>
@@ -246,8 +248,8 @@ export default function ProductPage() {
               {!inStock
                 ? 'Out of Stock'
                 : added
-                  ? <><Check size={18} /> Added to Cart!</>
-                  : <><ShoppingBag size={18} /> Add to Cart</>
+                  ? <><Check size={18} /> {t("added_to_cart")}</>
+                  : <><ShoppingBag size={18} /> {t("add_to_cart")}</>
               }
             </Button>
             <button onClick={handleWishlist}
@@ -293,7 +295,7 @@ export default function ProductPage() {
       {/* ── RELATED PRODUCTS ── */}
       {related.length > 0 && (
         <section className="mt-20 pt-16 border-t border-border-light dark:border-border-dark">
-          <h2 className="font-display text-3xl tracking-heading text-ink-1 dark:text-ink-dk1 mb-8">You May Also Like</h2>
+          <h2 className="font-display text-3xl tracking-heading text-ink-1 dark:text-ink-dk1 mb-8">{t("related_title")}</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             {related.map(p => <ProductCard key={p.id} product={p} />)}
           </div>

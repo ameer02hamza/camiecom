@@ -5,8 +5,10 @@ import { ArrowLeft, ArrowRight, Mail } from 'lucide-react'
 import Button from '@/shared/ui/Button'
 import Input from '@/shared/ui/Input'
 import AlertBanner from '@/shared/ui/AlertBanner'
+import { useTranslations } from 'next-intl'
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations('forgot_password')
   const [email,   setEmail]   = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -26,12 +28,12 @@ export default function ForgotPasswordPage() {
       const data = await res.json()
 
       if (!data.success) {
-        setError(data.error || 'Something went wrong. Please try again.')
+        setError(data.error || t('no_email'))
       } else {
         setSuccess(true)
       }
     } catch {
-      setError('Something went wrong. Please try again.')
+      setError(t('no_email'))
     } finally {
       setLoading(false)
     }
@@ -41,47 +43,44 @@ export default function ForgotPasswordPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm">
 
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="w-14 h-14 rounded-full bg-brand-warm/10 flex items-center justify-center mx-auto mb-4">
             <Mail size={24} className="text-brand-warm" />
           </div>
-          <h1 className="font-display text-4xl tracking-heading mb-2">Forgot password?</h1>
+          <h1 className="font-display text-4xl tracking-heading mb-2">{t('title')}</h1>
           <p className="text-sm text-ink-2 dark:text-ink-dk2">
-            Enter your email and we'll send you a reset link
+            {t('subtitle')}
           </p>
         </div>
 
         {success ? (
-          /* ── Success state ── */
           <div className="bg-surface-light dark:bg-surface-dark rounded-panel shadow-card p-8 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-brand-sage/10 flex items-center justify-center mx-auto">
               <Mail size={20} className="text-brand-sage" />
             </div>
             <div>
-              <p className="font-semibold text-ink-1 dark:text-ink-dk1 mb-1">Check your inbox</p>
+              <p className="font-semibold text-ink-1 dark:text-ink-dk1 mb-1">{t('success_title')}</p>
               <p className="text-sm text-ink-2 dark:text-ink-dk2">
-                If an account exists for <span className="font-medium text-ink-1 dark:text-ink-dk1">{email}</span>, you'll receive a password reset link shortly.
+                {t('success_body', { email })}
               </p>
             </div>
             <p className="text-xs text-ink-2 dark:text-ink-dk2">
-              Didn't receive it? Check your spam folder or{' '}
+              {t('no_email')}{' '}
               <button
                 onClick={() => { setSuccess(false); setEmail('') }}
                 className="text-brand-warm hover:underline"
               >
-                try again
+                {t('try_again')}
               </button>
             </p>
             <Link
               href="/auth/login"
               className="flex items-center justify-center gap-2 text-sm text-brand-warm hover:underline mt-2"
             >
-              <ArrowLeft size={14} /> Back to sign in
+              <ArrowLeft size={14} /> {t('back_to_sign_in')}
             </Link>
           </div>
         ) : (
-          /* ── Form state ── */
           <>
             {error && <AlertBanner type="error" message={error} className="mb-4" />}
 
@@ -90,7 +89,7 @@ export default function ForgotPasswordPage() {
               className="bg-surface-light dark:bg-surface-dark rounded-panel shadow-card p-8 space-y-5"
             >
               <Input
-                label="Email address"
+                label={t('label_email')}
                 type="email"
                 required
                 value={email}
@@ -99,7 +98,7 @@ export default function ForgotPasswordPage() {
               />
 
               <Button type="submit" fullWidth size="lg" loading={loading}>
-                Send reset link <ArrowRight size={16} />
+                {t('submit')} <ArrowRight size={16} />
               </Button>
             </form>
 
@@ -107,7 +106,7 @@ export default function ForgotPasswordPage() {
               href="/auth/login"
               className="flex items-center justify-center gap-2 text-sm text-ink-2 dark:text-ink-dk2 hover:text-ink-1 dark:hover:text-ink-dk1 mt-6 transition-colors"
             >
-              <ArrowLeft size={14} /> Back to sign in
+              <ArrowLeft size={14} /> {t('back_to_sign_in')}
             </Link>
           </>
         )}

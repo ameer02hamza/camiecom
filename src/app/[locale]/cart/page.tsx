@@ -56,10 +56,10 @@ export default function CartPage() {
             <ShoppingBag size={32} className="text-ink-2 dark:text-ink-dk2" />
           </div>
           <h1 className="font-display text-3xl tracking-heading mb-2">
-            Your cart is empty
+            {t("empty")}
           </h1>
           <p className="text-ink-2 dark:text-ink-dk2 text-sm mb-8">
-            Add something beautiful to get started.
+            {t("empty_sub")}
           </p>
           <Link href="/shop">
             <Button size="lg">
@@ -74,7 +74,7 @@ export default function CartPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex items-center justify-between mb-10">
         <h1 className="font-display text-4xl tracking-heading flex items-center gap-3">
-          Your Cart ({totalQuantity})
+          {t("title")} ({totalQuantity})
           {isLoading && (
             <Loader2
               size={20}
@@ -86,7 +86,7 @@ export default function CartPage() {
           onClick={() => dispatch(clearCart())}
           className="text-sm text-ink-2 dark:text-ink-dk2 hover:text-brand-red transition-colors underline"
         >
-          Clear cart
+          {t("clear_cart")}
         </button>
       </div>
 
@@ -97,6 +97,8 @@ export default function CartPage() {
             <div key={item.variantId} className="flex gap-5 py-6">
               <div className="relative w-24 h-30 flex-shrink-0 rounded-card overflow-hidden bg-border-light dark:bg-border-dark">
                 <Image
+
+                  loading="eager"
                   src={item.image}
                   alt={item.title}
                   fill
@@ -218,7 +220,7 @@ export default function CartPage() {
             </div>
 
             <Button fullWidth size="lg" onClick={handleCheckout}>
-              Proceed to Checkout <ArrowRight size={16} />
+              {t("proceed_checkout")} <ArrowRight size={16} />
             </Button>
             <Link
               href="/shop"

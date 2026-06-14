@@ -7,26 +7,6 @@ import { shopifyFetch, CUSTOMER_UPDATE } from "@/shared/lib/shopify";
 import { useAppSelector } from "@/store/hooks";
 import { useTranslations } from "next-intl";
 
-const LINKS = {
-  Shop: [
-    ["All Products",  "/shop"],
-    ["New Arrivals",  "/collections/new-arrivals"],
-    ["Collections",   "/collections/new-arrivals"],
-    ["Sale",          "/shop?sort=price-asc"],
-  ],
-  Info: [
-    ["About Us",      "/about"],
-    ["Contact",       "/contact"],
-    ["Sustainability","/about"],
-    ["Careers",       "/contact"],
-  ],
-  Help: [
-    ["Shipping Info", "/contact"],
-    ["Returns",       "/contact"],
-    ["Size Guide",    "/contact"],
-    ["FAQ",           "/contact"],
-  ],
-};
 
 function NewsletterSection() {
   const t = useTranslations('footer')
@@ -98,10 +78,10 @@ function NewsletterSection() {
     <div className="bg-brand-dark dark:bg-black py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h3 className="font-display text-3xl text-brand-light mb-2">
-          Stay in the loop
+          {t('newsletter_title')}
         </h3>
         <p className="text-brand-light/60 text-sm mb-8">
-          New arrivals, exclusive offers, and style inspiration.
+          {t('newsletter_sub')}
         </p>
 
         {status !== "idle" && (
@@ -200,6 +180,26 @@ function NewsletterSection() {
 
 export default function Footer() {
   const t = useTranslations('footer')
+  const LINKS = {
+  Shop: [
+    [t('all_products'),  "/shop"],
+    [t('new_arrivals'),  "/collections/new-arrivals"],
+    [t('collections'),   "/collections/new-arrivals"],
+    [t('sale'),          "/shop?sort=price-asc"],
+  ],
+  Info: [
+    [t('about'),      "/about"],
+    [t('contact'),       "/contact"],
+    [t('sustainability'),"/about"],
+    [t('careers'),       "/contact"],
+  ],
+  Help: [
+    [t('shipping_info'), "/contact"],
+    [t('returns'),       "/contact"],
+    [t('size_guide'),    "/contact"],
+    [t('faq'),           "/contact"],
+  ],
+};
   return (
     <footer className="border-t border-border-light dark:border-border-dark mt-24">
       <NewsletterSection />

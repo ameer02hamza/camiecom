@@ -32,7 +32,6 @@ export default async function HomePage() {
   const t = await getTranslations('home')
   const hero = HERO_BANNERS[0];
 
-  // Fetch in parallel
   const [bestsellersData, newArrivalsData, collectionsData] =
     await Promise.allSettled([
       shopifyFetch<{ products: { edges: { node: ShopifyProductNode }[] } }>({
@@ -65,7 +64,6 @@ export default async function HomePage() {
         )
       : [];
 
-  // Collections from Shopify — fallback to mockData if none
   const shopifyCollections =
     collectionsData.status === "fulfilled"
       ? collectionsData.value.collections.edges.map((e) => e.node)
@@ -99,6 +97,7 @@ export default async function HomePage() {
           priority
           className="object-cover object-center"
           sizes="100vw"
+          loading="eager"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-brand-dark/70 via-brand-dark/30 to-transparent" />
         <div className="absolute inset-0 flex items-center">
@@ -145,9 +144,9 @@ export default async function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="grid grid-cols-3 divide-x divide-border-light dark:divide-border-dark text-center">
             {[
-              { icon: Truck, label: "Free Shipping", sub: "Orders over $150" },
-              { icon: RotateCcw, label: "Free Returns", sub: "30-day policy" },
-              { icon: Leaf, label: "Sustainable", sub: "Ethical production" },
+              { icon: Truck, label: t('trust_shipping_label'), sub: t('trust_shipping_sub') },
+              { icon: RotateCcw, label: t('trust_returns_label'), sub: t('trust_returns_sub') },
+              { icon: Leaf, label: t('trust_sustainable_label'), sub: t('trust_sustainable_sub') },
             ].map(({ icon: Icon, label, sub }) => (
               <div
                 key={label}
@@ -174,17 +173,17 @@ export default async function HomePage() {
         <div className="flex items-end justify-between mb-10">
           <div>
             <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">
-              Explore
+              {t('section_explore')}
             </p>
             <h2 className="font-display text-4xl text-ink-1 dark:text-ink-dk1 tracking-heading">
-              Shop by Category
+              {t('section_shop_by_category')}
             </h2>
           </div>
           <Link
             href="/shop"
             className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-brand-warm transition-colors"
           >
-            View all <ArrowRight size={15} />
+            {t('section_view_all')} <ArrowRight size={15} />
           </Link>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -198,6 +197,7 @@ export default async function HomePage() {
                 src={cat.image}
                 alt={cat.label}
                 fill
+                  loading="eager"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                 sizes="(max-width:640px) 50vw,25vw"
               />
@@ -207,7 +207,7 @@ export default async function HomePage() {
                   {cat.label}
                 </p>
                 <p className="text-white/70 text-xs flex items-center gap-1 mt-1">
-                  Shop now <ArrowRight size={11} />
+                  {t('shop_now_link')} <ArrowRight size={11} />
                 </p>
               </div>
             </Link>
@@ -222,17 +222,17 @@ export default async function HomePage() {
             <div className="flex items-end justify-between mb-10">
               <div>
                 <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">
-                  Top Picks
+                  {t('section_top_picks')}
                 </p>
                 <h2 className="font-display text-4xl text-ink-1 dark:text-ink-dk1 tracking-heading">
-                  Bestsellers
+                  {t('section_bestsellers')}
                 </h2>
               </div>
               <Link
                 href="/shop"
                 className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-brand-warm transition-colors"
               >
-                View all <ArrowRight size={15} />
+                {t('section_view_all')} <ArrowRight size={15} />
               </Link>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
@@ -251,25 +251,26 @@ export default async function HomePage() {
             src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1400&q=80"
             alt="Sale"
             fill
+                  loading="eager"
             className="object-cover opacity-50"
             sizes="100vw"
           />
           <div className="absolute inset-0 flex items-center justify-center text-center px-8">
             <div>
               <span className="inline-block text-brand-warm text-xs font-semibold tracking-label uppercase mb-4 bg-brand-warm/20 px-3 py-1.5 rounded-pill">
-                Limited Time
+                {t('section_limited_time')}
               </span>
               <h2 className="font-display text-4xl sm:text-5xl text-white tracking-heading mb-4">
-                End of Season Sale
+                {t('section_sale_title')}
               </h2>
               <p className="text-white/70 mb-8">
-                Up to 30% off selected styles. While stocks last.
+                {t('section_sale_sub')}
               </p>
               <Link
                 href="/shop"
                 className="inline-flex items-center gap-2 h-12 px-8 bg-white text-brand-dark rounded-btn text-sm font-semibold hover:opacity-90 transition-opacity"
               >
-                Shop Sale <ArrowRight size={16} />
+                {t('section_shop_sale')} <ArrowRight size={16} />
               </Link>
             </div>
           </div>
@@ -282,17 +283,17 @@ export default async function HomePage() {
           <div className="flex items-end justify-between mb-10">
             <div>
               <p className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-2">
-                Just Dropped
+                {t('section_just_dropped')}
               </p>
               <h2 className="font-display text-4xl text-ink-1 dark:text-ink-dk1 tracking-heading">
-                New Arrivals
+                {t('section_new_arrivals')}
               </h2>
             </div>
             <Link
               href="/shop"
               className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-ink-2 dark:text-ink-dk2 hover:text-brand-warm transition-colors"
             >
-              View all <ArrowRight size={15} />
+              {t('section_view_all')} <ArrowRight size={15} />
             </Link>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
@@ -307,23 +308,24 @@ export default async function HomePage() {
       <section className="bg-brand-dark py-24">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <p className="text-xs font-semibold tracking-label uppercase text-brand-warm mb-6">
-            Our Philosophy
+            {t('philosophy_label')}
           </p>
           <h2 className="font-display text-4xl sm:text-5xl text-brand-light leading-tight tracking-heading mb-8">
-            "We believe in buying less,
-            <br />
-            choosing better."
+            {t('philosophy_quote').split("\n").map((line, i) => (
+              <span key={i}>
+                {line}
+                {i === 0 && <br />}
+              </span>
+            ))}
           </h2>
           <p className="text-brand-light/60 leading-body mb-10 max-w-xl mx-auto">
-            Every piece in the Camiecom collection is designed to last — in
-            craft, in style, and in the way it makes you feel. We work with
-            artisans who share our values.
+            {t('philosophy_body')}
           </p>
           <Link
             href="/about"
             className="inline-flex items-center gap-2 h-11 px-7 border border-brand-light/30 text-brand-light rounded-btn text-sm font-medium hover:bg-brand-light/10 transition-colors"
           >
-            Our Story <ArrowRight size={15} />
+            {t('our_story')} <ArrowRight size={15} />
           </Link>
         </div>
       </section>

@@ -8,8 +8,10 @@ import Input from '@/shared/ui/Input'
 import AlertBanner from '@/shared/ui/AlertBanner'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { registerCustomer, loginCustomer, clearError } from '@/features/auth/store/authSlice'
+import { useTranslations } from 'next-intl'
 
 export default function RegisterPage() {
+  const t = useTranslations('register')
   const dispatch = useAppDispatch()
   const router   = useRouter()
   const { loading, error } = useAppSelector(s => s.auth)
@@ -30,7 +32,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (form.password !== form.confirm) { setPwError('Passwords do not match.'); return }
+    if (form.password !== form.confirm) { setPwError(t('passwords_no_match')); return }
     setPwError('')
 
     const result = await dispatch(registerCustomer({
@@ -57,34 +59,32 @@ export default function RegisterPage() {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="font-display text-4xl tracking-heading mb-2">Create account</h1>
-          <p className="text-sm text-ink-2 dark:text-ink-dk2">Join Camiecom and dress with intention</p>
+          <h1 className="font-display text-4xl tracking-heading mb-2">{t('title')}</h1>
+          <p className="text-sm text-ink-2 dark:text-ink-dk2">{t('subtitle')}</p>
         </div>
 
-        {success   && <AlertBanner type="success" message="Account created! Redirecting..."  className="mb-4" />}
-        {alertMsg  && <AlertBanner type="error"   message={alertMsg}                         className="mb-4" />}
+        {success   && <AlertBanner type="success" message={t('success')}  className="mb-4" />}
+        {alertMsg  && <AlertBanner type="error"   message={alertMsg}       className="mb-4" />}
 
         <form onSubmit={handleSubmit} className="bg-surface-light dark:bg-surface-dark rounded-panel shadow-card p-8 space-y-4">
-          {/* Name row */}
           <div className="grid grid-cols-2 gap-3">
-            <Input label="First name" required value={form.firstName} onChange={f('firstName')} />
-            <Input label="Last name"  required value={form.lastName}  onChange={f('lastName')}  />
+            <Input label={t('first_name')} required value={form.firstName} onChange={f('firstName')} />
+            <Input label={t('last_name')}  required value={form.lastName}  onChange={f('lastName')}  />
           </div>
 
-          <Input label="Email"    type="email" required value={form.email} onChange={f('email')} placeholder="your@camiecom.com" />
-          <Input label="Phone"    type="tel"            value={form.phone} onChange={f('phone')} placeholder="+1 555 000 0000"
-            hint="Optional" />
+          <Input label={t('email')}    type="email" required value={form.email} onChange={f('email')} placeholder="your@camiecom.com" />
+          <Input label={t('phone')}    type="tel"            value={form.phone} onChange={f('phone')} placeholder="+1 555 000 0000"
+            hint={t('phone_hint')} />
 
-          {/* Password with eye toggle */}
           <div className="relative">
             <Input
-              label="Password"
+              label={t('password')}
               type={showPw ? 'text' : 'password'}
               required
               minLength={5}
               value={form.password}
               onChange={f('password')}
-              placeholder="Min. 5 characters"
+              placeholder={t('password_placeholder')}
               className="pr-11"
             />
             <button
@@ -97,7 +97,7 @@ export default function RegisterPage() {
           </div>
 
           <Input
-            label="Confirm Password"
+            label={t('confirm_password')}
             type="password"
             required
             value={form.confirm}
@@ -108,28 +108,28 @@ export default function RegisterPage() {
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.acceptsMarketing} onChange={f('acceptsMarketing')}
               className="w-4 h-4 rounded accent-brand-dark" />
-            <span className="text-xs text-ink-2 dark:text-ink-dk2">Email me about new arrivals and offers</span>
+            <span className="text-xs text-ink-2 dark:text-ink-dk2">{t('marketing_checkbox')}</span>
           </label>
 
           <label className="flex items-start gap-2 cursor-pointer">
             <input type="checkbox" required checked={form.terms} onChange={f('terms')}
               className="w-4 h-4 mt-0.5 rounded accent-brand-dark" />
             <span className="text-xs text-ink-2 dark:text-ink-dk2">
-              I agree to the{' '}
-              <span className="text-brand-warm hover:underline cursor-pointer">Terms</span>{' '}
-              and{' '}
-              <span className="text-brand-warm hover:underline cursor-pointer">Privacy Policy</span>
+              {t('terms_checkbox')}{' '}
+              <span className="text-brand-warm hover:underline cursor-pointer">{t('terms_link')}</span>{' '}
+              {t('terms_and')}{' '}
+              <span className="text-brand-warm hover:underline cursor-pointer">{t('privacy_link')}</span>
             </span>
           </label>
 
           <Button type="submit" fullWidth size="lg" loading={loading}>
-            Create Account <ArrowRight size={16} />
+            {t('submit')} <ArrowRight size={16} />
           </Button>
         </form>
 
         <p className="text-center text-sm text-ink-2 dark:text-ink-dk2 mt-6">
-          Already have an account?{' '}
-          <Link href="/auth/login" className="text-brand-warm font-medium hover:underline">Sign in</Link>
+          {t('have_account')}{' '}
+          <Link href="/auth/login" className="text-brand-warm font-medium hover:underline">{t('sign_in')}</Link>
         </p>
       </div>
     </div>

@@ -16,6 +16,7 @@ import { clearCart } from "@/features/cart/store/cartSlice";
 import { formatPrice } from "@/shared/utils/formatPrice";
 import Button from "@/shared/ui/Button";
 import { cn } from "@/shared/utils/cn";
+import { useTranslations } from "next-intl";
 import { shopifyFetch, UPDATE_BUYER_IDENTITY } from "@/shared/lib/shopify";
 
 type Step = "shipping" | "payment";
@@ -63,6 +64,7 @@ const COUNTRY_CODES: Record<string, string> = {
 };
 
 export default function CheckoutPage() {
+  const t = useTranslations("checkout");
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { items, totalAmount, checkoutUrl, cartId } = useAppSelector(s => s.cart)
@@ -115,9 +117,9 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-[70vh] flex items-center justify-center text-center px-4">
         <div>
-          <h1 className="font-display text-3xl mb-3">Your cart is empty</h1>
+          <h1 className="font-display text-3xl mb-3">{t("empty_title")}</h1>
           <Link href="/shop">
-            <Button>Continue Shopping</Button>
+            <Button>{t("continue_shopping")}</Button>
 
           </Link>
         </div>
@@ -222,7 +224,7 @@ export default function CheckoutPage() {
           </Link>
           <div className="flex items-center gap-2 text-xs text-ink-2 dark:text-ink-dk2">
             <Lock size={12} />
-            <span>Secure Checkout</span>
+            <span>{t("secure")}</span>
           </div>
         </div>
       </div>
@@ -425,7 +427,7 @@ export default function CheckoutPage() {
                     !shipping.city ||
                     !shipping.zip
                   ) {
-                    alert("Please fill in all required fields.");
+                    alert(t("fill_required"));
                     return;
                   }
                   setStep("payment");
@@ -477,12 +479,12 @@ export default function CheckoutPage() {
                   {[
                     {
                       value: "card" as const,
-                      label: "Credit / Debit Card",
+                      label: t("method_card"),
                       icon: "💳",
                     },
                     {
                       value: "cod" as const,
-                      label: "Cash on Delivery",
+                      label: t("method_cod"),
                       icon: "💵",
                     },
                   ].map((m) => (
@@ -564,7 +566,7 @@ export default function CheckoutPage() {
               >
                 <Lock size={15} />
                 {loading
-                  ? "Redirecting..."
+                  ? t("redirecting")
                   : `Continue to Secure Payment — ${formatPrice(total)}`}
               </Button>
 
@@ -579,7 +581,7 @@ export default function CheckoutPage() {
               </div>
 
               <p className="text-center text-xs text-ink-2 dark:text-ink-dk2">
-                By placing your order you agree to our{" "}
+                {t("terms_text")}{" "}
                 <span className="text-brand-warm cursor-pointer hover:underline">
                   Terms of Service
                 </span>{" "}
@@ -595,7 +597,7 @@ export default function CheckoutPage() {
         {/* ── RIGHT: ORDER SUMMARY ── */}
         <div>
           <div className="bg-surface-light dark:bg-surface-dark rounded-panel shadow-card p-6 sticky top-24">
-            <h3 className="font-display text-lg mb-5">Order Summary</h3>
+            <h3 className="font-display text-lg mb-5">{t("order_summary")}</h3>
 
             {/* Items */}
             <div className="space-y-4 mb-6 max-h-64 overflow-y-auto scrollbar-hide">
@@ -632,7 +634,7 @@ export default function CheckoutPage() {
             <div className="flex gap-2 mb-5">
               <input
                 type="text"
-                placeholder="Gift card or discount code"
+                placeholder={t("coupon_placeholder")}
                 className="flex-1 h-9 px-3 text-sm border border-border-light dark:border-border-dark rounded-btn bg-transparent focus:outline-none focus:border-brand-dark dark:focus:border-brand-light transition-colors"
               />
               <button className="h-9 px-3 text-sm font-medium border border-border-light dark:border-border-dark rounded-btn hover:bg-border-light dark:hover:bg-border-dark transition-colors flex-shrink-0">
@@ -643,25 +645,25 @@ export default function CheckoutPage() {
             {/* Totals */}
             <div className="space-y-2.5 text-sm border-t border-border-light dark:border-border-dark pt-4">
               <div className="flex justify-between text-ink-2 dark:text-ink-dk2">
-                <span>Subtotal</span>
+                <span>{t("subtotal")}</span>
                 <span>{formatPrice(totalAmount)}</span>
               </div>
               <div className="flex justify-between text-ink-2 dark:text-ink-dk2">
-                <span>Shipping</span>
+                <span>{t("shipping_label")}</span>
                 <span
                   className={
                     shippingCost === 0 ? "text-brand-sage font-medium" : ""
                   }
                 >
-                  {shippingCost === 0 ? "Free" : formatPrice(shippingCost)}
+                  {shippingCost === 0 ? t("shipping_free") : formatPrice(shippingCost)}
                 </span>
               </div>
               <div className="flex justify-between text-ink-2 dark:text-ink-dk2">
-                <span>Tax (est.)</span>
+                <span>{t("tax")}</span>
                 <span>{formatPrice(tax)}</span>
               </div>
               <div className="flex justify-between font-bold text-base pt-2 border-t border-border-light dark:border-border-dark">
-                <span>Total</span>
+                <span>{t("total")}</span>
                 <span>{formatPrice(total)}</span>
               </div>
             </div>
@@ -669,9 +671,9 @@ export default function CheckoutPage() {
             {/* Trust */}
             <div className="mt-5 pt-5 border-t border-border-light dark:border-border-dark">
               {[
-                "Free returns within 30 days",
-                "Secure 256-bit SSL encryption",
-                "Quality guaranteed or refunded",
+                t("trust_returns"),
+                t("trust_ssl"),
+                t("trust_quality"),
               ].map((t) => (
                 <div key={t} className="flex items-center gap-2 mb-2">
                   <Check size={13} className="text-brand-sage flex-shrink-0" />

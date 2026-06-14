@@ -103,7 +103,8 @@ export default function ImageLightbox({ images, activeIndex, onClose, onNavigate
                 i === activeIndex ? 'border-white' : 'border-white/30 hover:border-white/60'
               }`}
             >
-              <Image src={img.url} alt={img.altText || ''} fill className="object-cover" sizes="56px" />
+              <Image src={img.url} alt={img.altText || ''} fill className="object-cover" sizes="56px" 
+                  loading="eager" />
             </button>
           ))}
         </div>

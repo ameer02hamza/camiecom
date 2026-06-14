@@ -5,8 +5,8 @@ import { shopifyFetch } from '@/shared/lib/shopify'
 import { mapShopifyProduct, type ShopifyProductNode } from '@/shared/lib/shopifyMapper'
 import ProductCard from '@/shared/components/ProductCard'
 import type { Product } from '@/shared/types/global.types'
+import { useTranslations } from 'next-intl'
 
-// ─── Shopify search query ──────────────────────────────────────────────────────
 const SEARCH_PRODUCTS = `
   query SearchProducts($query: String!, $first: Int!) {
     search(query: $query, first: $first, types: PRODUCT) {
@@ -42,6 +42,7 @@ const SUGGESTED_TAGS = ['Cashmere', 'Silk', 'Linen', 'Leather', 'Knitwear']
 const DEBOUNCE_MS = 400
 
 export default function SearchPage() {
+  const t = useTranslations('search')
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<Product[]>([])
   const [totalCount, setTotalCount] = useState(0)
@@ -75,7 +76,7 @@ export default function SearchPage() {
         setTotalCount(data.search.totalCount)
       } catch (err) {
         console.error('Search error:', err)
-        setError('Something went wrong. Please try again.')
+        setError(t('no_results', { query: trimmed }))
         setResults([])
       } finally {
         setLoading(false)
@@ -85,11 +86,11 @@ export default function SearchPage() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [query])
+  }, [query, t])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="font-display text-4xl tracking-heading text-center mb-8">Search</h1>
+      <h1 className="font-display text-4xl tracking-heading text-center mb-8">{t('title')}</h1>
 
       {/* Search input */}
       <div className="relative max-w-xl mx-auto mb-12">
@@ -103,7 +104,7 @@ export default function SearchPage() {
           autoFocus
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search for products..."
+          placeholder={t('placeholder')}
           className="w-full h-14 pl-12 pr-12 text-base border border-border-light dark:border-border-dark rounded-card bg-surface-light dark:bg-surface-dark focus:outline-none focus:border-brand-dark dark:focus:border-brand-light transition-colors"
         />
         {query && (
@@ -119,7 +120,7 @@ export default function SearchPage() {
       {/* States */}
       {query.trim() === '' ? (
         <div className="text-center text-ink-2 dark:text-ink-dk2 py-16">
-          <p className="text-lg">Start typing to search our collection.</p>
+          <p className="text-lg">{t('start_typing')}</p>
           <div className="flex flex-wrap gap-2 justify-center mt-6">
             {SUGGESTED_TAGS.map(tag => (
               <button
@@ -139,17 +140,17 @@ export default function SearchPage() {
       ) : loading ? (
         <div className="text-center py-16 text-ink-2 dark:text-ink-dk2">
           <Loader2 size={28} className="animate-spin mx-auto mb-3" />
-          <p className="text-sm">Searching...</p>
+          <p className="text-sm">{t('searching')}</p>
         </div>
       ) : results.length === 0 ? (
         <div className="text-center text-ink-2 dark:text-ink-dk2 py-16">
-          <p className="text-lg mb-2">No results for "{query}"</p>
-          <p className="text-sm">Try a different search term.</p>
+          <p className="text-lg mb-2">{t('no_results', { query })}</p>
+          <p className="text-sm">{t('no_results_hint')}</p>
         </div>
       ) : (
         <>
           <p className="text-sm text-ink-2 dark:text-ink-dk2 mb-6">
-            {totalCount} result{totalCount !== 1 ? 's' : ''} for "{query}"
+            {totalCount} {t('results_for', { query })}
           </p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             {results.map(p => <ProductCard key={p.id} product={p} />)}

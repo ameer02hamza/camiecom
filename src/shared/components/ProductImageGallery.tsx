@@ -3,6 +3,7 @@ import { useState, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { cn } from '@/shared/utils/cn'
 import { Badge } from '@/shared/ui/Badge'
+import { useTranslations } from 'next-intl'
 import ImageLightbox from '@/shared/components/ImageLightbox'
 import type { ProductImage } from '@/shared/types/global.types'
 
@@ -22,6 +23,7 @@ const LENS_H    = 160
 const ZOOM      = 3
 
 export default function ProductImageGallery({ images, title, isSale, isNew, isBestseller, savingsPercent }: Props) {
+  const t = useTranslations('product_page')
   const [activeImage, setActiveImage]   = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [zooming, setZooming]           = useState(false)
@@ -74,6 +76,8 @@ export default function ProductImageGallery({ images, title, isSale, isNew, isBe
         {/* Base image */}
         {currentImage?.url && (
           <Image
+
+                  loading="eager"
             src={currentImage.url}
             alt={title}
             fill
@@ -114,7 +118,7 @@ export default function ProductImageGallery({ images, title, isSale, isNew, isBe
             zooming ? 'opacity-0' : 'opacity-100'
           )}
         >
-          Hover to zoom · Click to expand
+          {t('hover_to_zoom')}
         </div>
       </div>
 

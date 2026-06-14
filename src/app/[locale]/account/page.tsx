@@ -263,6 +263,7 @@ export default function AccountPage() {
                         alt="Order item"
                         width={48}
                         height={48}
+                  loading="eager"
                         className="object-cover w-full h-full"
                       />
                     ) : (

@@ -155,10 +155,10 @@ export default function ShopPage() {
           Browse
         </p>
         <h1 className="font-display text-4xl tracking-heading text-ink-1 dark:text-ink-dk1">
-          Shop All
+          {t("title")}
         </h1>
         <p className="text-sm text-ink-2 dark:text-ink-dk2 mt-1">
-          {loading ? t("loading") : `${filtered.length} products`}
+        {loading ? t("loading") : t("products_count", { count: filtered.length })}
         </p>
       </div>
 
@@ -235,7 +235,7 @@ export default function ShopPage() {
 
             <div>
               <h3 className="text-xs font-semibold tracking-label uppercase text-ink-2 dark:text-ink-dk2 mb-3">
-                Max Price —{" "}
+                {t("filter_price")} —{" "}
                 {priceMax >= maxProductPrice ? "Any" : `$${priceMax}`}
               </h3>
               <input
@@ -275,7 +275,7 @@ export default function ShopPage() {
                   />
                 </div>
                 <span className="text-sm text-ink-1 dark:text-ink-dk1">
-                  Sale items only
+                  {t("filter_sale_only")}
                 </span>
               </label>
             </div>
@@ -326,13 +326,13 @@ export default function ShopPage() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-24">
               <p className="text-ink-2 dark:text-ink-dk2 text-lg mb-3">
-                No products match your filters.
+                {t("no_products")}
               </p>
               <button
                 onClick={clearAll}
                 className="text-sm text-brand-warm underline"
               >
-                Clear all filters
+                {t("clear_filters")}
               </button>
             </div>
           ) : (
@@ -360,7 +360,7 @@ export default function ShopPage() {
                           Loading...
                         </>
                       ) : (
-                        "Load More Products"
+                        t("load_more")
                       )}
                     </button>
                   </div>
@@ -368,10 +368,12 @@ export default function ShopPage() {
 
               {/* Total count */}
               <p className="text-center text-xs text-ink-2 dark:text-ink-dk2 mt-6">
-                Showing {filtered.length} products{" "}
+                {t("showing", { count: filtered.length })}
+{hasNextPage && selectedCategory === "All" ? ` — ${t("scroll_for_more")}` : ""}
+                {/* Showing {filtered.length} products{" "}
                 {hasNextPage && selectedCategory === "All"
                   ? "— scroll for more"
-                  : ""}
+                  : ""} */}
               </p>
             </>
           )}

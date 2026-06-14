@@ -51,7 +51,7 @@ export default function CartDrawer() {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border-light dark:border-border-dark">
           <div className="flex items-center gap-2">
-            <h2 className="font-display text-xl font-semibold">Your Cart</h2>
+            <h2 className="font-display text-xl font-semibold">{t("title")}</h2>
             {totalQuantity > 0 && (
               <span className="inline-flex items-center justify-center w-5 h-5 bg-brand-dark dark:bg-brand-light text-brand-light dark:text-brand-dark text-xs font-bold rounded-pill">
                 {totalQuantity}
@@ -71,11 +71,11 @@ export default function CartDrawer() {
               <div className="w-16 h-16 bg-border-light dark:bg-border-dark rounded-panel flex items-center justify-center mb-4">
                 <ShoppingBag size={28} className="text-ink-2 dark:text-ink-dk2" />
               </div>
-              <p className="font-medium text-ink-1 dark:text-ink-dk1 mb-1">Your cart is empty</p>
-              <p className="text-sm text-ink-2 dark:text-ink-dk2 mb-6">Add something beautiful to get started.</p>
+              <p className="font-medium text-ink-1 dark:text-ink-dk1 mb-1">{t("empty")}</p>
+              <p className="text-sm text-ink-2 dark:text-ink-dk2 mb-6">{t("empty_sub")}</p>
               <Link href="/shop" onClick={() => dispatch(closeCart())}
                 className="inline-flex items-center justify-center h-9 px-4 text-sm font-medium border border-border-light dark:border-border-dark text-ink-1 dark:text-ink-dk1 rounded-btn hover:bg-border-light dark:hover:bg-border-dark transition-colors">
-                Browse Shop
+                {t("browse_shop")} <ArrowRight size={14} />
               </Link>
             </div>
           ) : (
@@ -83,7 +83,8 @@ export default function CartDrawer() {
               {items.map(item => (
                 <div key={item.variantId} className="flex gap-4 py-4 border-b border-border-light/60 dark:border-border-dark/60 last:border-0">
                   <div className="relative w-20 h-24 flex-shrink-0 rounded-card overflow-hidden bg-border-light dark:bg-border-dark">
-                    <Image src={item.image} alt={item.title} fill className="object-cover" sizes="80px" />
+                    <Image src={item.image} alt={item.title} fill className="object-cover" sizes="80px" 
+                  loading="eager" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-2">
@@ -142,11 +143,11 @@ export default function CartDrawer() {
             </div>
 
             <Button fullWidth size="lg" onClick={handleCheckout}>
-              Proceed to Checkout <ArrowRight size={16} />
+              {t("proceed_checkout")} <ArrowRight size={16} />
             </Button>
 
             <button onClick={() => dispatch(closeCart())} className="w-full text-center text-sm text-ink-2 dark:text-ink-dk2 hover:text-ink-1 dark:hover:text-ink-dk1 transition-colors">
-              Continue Shopping
+              {t("continue_shopping")}
             </button>
           </div>
         )}
